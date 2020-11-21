@@ -20,3 +20,10 @@ In your Core_classes.h file you need to delete the generated FPointer struct (as
 #include "SDK_HEADERS\Engine_classes.h"
 #include "SDK_HEADERS\Engine_parameters.h"
 ```
+
+To use your newly generated SDK in your own DLL all you have to do is include SdkHeaders.h and initialize the GObject and GName pointers that are located in the generated GameDefines.h file.
+
+Here is an example of what a generated SDK looks like.
+
+![](https://i.imgur.com/gQhmv34.png)
+![](https://i.imgur.com/b3N6MvO.png)
