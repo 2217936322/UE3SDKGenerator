@@ -9,6 +9,8 @@ By default there is one Engine file, Rocket League, included. To create your own
 
 Once your SDK is complete you need to make a few changes to the generated files.
 
+If you're using virtual voids for process event (UsingDetours = false) you need to comment out "VfTableObject" from the UObject class.
+
 In your Core_classes.h file you need to delete the generated FPointer struct (as this is already defined in the generated GameDefines.h file), and you also need to swap the order of the includes in the SdkHeaders.h file. For example make sure the Core files are placed FIRST after GameDefines.h behind all the other includes like so:
 
 ```cpp
