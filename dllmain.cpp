@@ -1621,7 +1621,7 @@ namespace FunctionGenerator
                         if (printComma)
                             codeStream << ", ";
 
-                        codeStream << propertyType << " " << uProperty.second;
+                        codeStream << propertyType << "& " << uProperty.second;
 
                         printComma = true;
                     }
@@ -1821,7 +1821,7 @@ namespace FunctionGenerator
                         if (printComma)
                             functionStream << ", ";
 
-                        functionStream << propertyType << " " << uProperty.second;
+                        functionStream << propertyType << "& " << uProperty.second;
 
                         printComma = true;
                     }
@@ -2255,7 +2255,7 @@ namespace Generator
             fclose(nFile);
         }
 
-        if (false)
+        if (true)
         {
             FILE* fFile = nullptr;
             char fBuffer[256] = { NULL };
