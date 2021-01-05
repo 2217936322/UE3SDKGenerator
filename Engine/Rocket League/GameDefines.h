@@ -4,6 +4,8 @@
 #include <locale.h>
 #include <xlocale>
 #include <ctype.h>
+#include <chrono>
+#include <thread>
 #include <map>
 
 /*
@@ -418,7 +420,7 @@ public:
 class UConst : public UField
 {
 public:
-	struct FString		Value;								// 0x0070 (0x0C)
+	struct FString		Value;								// 0x0070 (0x10)
 public:
 	static UClass* StaticClass()
 	{

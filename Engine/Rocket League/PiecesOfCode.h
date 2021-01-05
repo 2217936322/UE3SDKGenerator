@@ -191,7 +191,29 @@ std::string FString_Struct =
 "\t};\n"
 "};\n";
 
-std::string UObject_Properties =
+std::string UClass_Fields =
+"\tclass UField*\tNext;\t// 0x0060 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned char\tUnknownData00[0x8];\t// 0x0068 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UStruct_Fields =
+"\tunsigned char\tUnknownData00[0x10];\t// 0x0070 (0x10) NOT AUTO-GENERATED PROPERTY\n"
+"\tclass UField*\tSuperField;\t// 0x0080 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tclass UField*\tChildren;\t// 0x0088 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\tPropertySize;\t// 0x0090 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned char\tUnknownData01[0x98];\t// 0x0094 (0x9C) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UFunction_Fields =
+"\tunsigned long\tFunctionFlags;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned short\tiNative;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned short\tRepOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tstruct FName\tFriendlyName;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned short\tNumParms;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned short\tParmsSize;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\tReturnValueOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned char\tUnknownData00[0x8];\t// NOT AUTO-GENERATED PROPERTY\n"
+"\tvoid*\tFunc;\t// NOT AUTO-GENERATED PROPERTY \n";
+
+std::string UObject_FunctionDescriptions =
 "\tstatic TArray<UObject*>* GObjObjects();\n\n"
 
 "\tchar const* GetName();\n"
@@ -206,6 +228,9 @@ std::string UObject_Properties =
 
 "\tbool IsA(UClass* pClass);\n"
 "\tbool IsA(int objInternalInteger);\n\n";
+
+std::string UFunction_FunctionDescriptions =
+"\tstatic UFunction* FindFunction(char const* functionFullName);\n";
 
 std::string UObject_Functions =
 "TArray<UObject*>* UObject::GObjObjects()\n"
@@ -347,11 +372,14 @@ std::string UObject_Functions =
 
 "UClass* UObject::FindClass(char const* classFullName)\n"
 "{\n"
-	"\tstd::string sClassFullName = classFullName;\n"
-	"\tstd::transform(sClassFullName.begin(), sClassFullName.end(), sClassFullName.begin(), ::tolower);\n\n"
+	"\twhile (!UObject::GObjObjects())\n"
+		"\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(100));\n\n"
 
-	"\tstatic std::map<std::string, UClass*> foundClasses = {};\n"
-	"\tstatic bool initialized = false;\n\n"
+	"\twhile (!FName::Names())\n"
+		"\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(100));\n\n"
+
+	"\tstatic bool initialized = false;\n"
+	"\tstatic std::map<std::string, UClass*> loadedClasses{};\n\n"
 
 	"\tif (!initialized)\n"
 	"\t{\n"
@@ -359,21 +387,23 @@ std::string UObject_Functions =
 		"\t\t{\n"
 			"\t\t\tUObject* object = UObject::GObjObjects()->Data[i];\n\n"
 
-			"\t\t\tif (!object)\n"
-				"\t\t\t\tcontinue;\n\n"
+			"\t\t\tif (object)\n"
+			"\t\t\t{\n"
+				"\t\t\t\tstd::string objectFullName = object->GetFullName();\n\n"
 
-			"\t\t\tstd::string objectFullName = std::string(object->GetFullName());\n"
-			"\t\t\tstd::transform(objectFullName.begin(), objectFullName.end(), objectFullName.begin(), ::tolower);\n\t"
-
-			"\t\t\tif (objectFullName.find(\"class\") != std::string::npos && foundClasses.find(objectFullName) == foundClasses.end())\n"
-				"\t\t\t\tfoundClasses[objectFullName] = (UClass*)object;\n"
+				"\t\t\t\tif (objectFullName.find(\"Class\") != std::string::npos)\n"
+					"\t\t\t\t\tloadedClasses[objectFullName] = (UClass*)object;\n"
+			"\t\t\t}\n"
 		"\t\t}\n\n"
 
 		"\t\tinitialized = true;\n"
 	"\t}\n\n"
 
-	"\treturn foundClasses[sClassFullName];\n"
-"}\n\n"
+	"\tif (loadedClasses.find(classFullName) != loadedClasses.end())\n"
+		"\t\treturn loadedClasses[classFullName];\n\n"
+
+	"\treturn nullptr;\n"
+"\t}\n\n"
 
 "bool UObject::IsA(UClass* pClass)\n"
 "{\n"
@@ -396,24 +426,38 @@ std::string UObject_Functions =
 	"\treturn false;\n"
 "}\n\n";
 
-std::string UClass_Properties =
-"\tclass UField*\tNext;\t// 0x0060 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData00[0x8];\t// 0x0068 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+std::string UFunction_Functions =
+"UFunction* UFunction::FindFunction(char const* functionFullName)\n"
+"{\n"
+	"\twhile (!UObject::GObjObjects())\n"
+		"\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(100));\n\n"
 
-std::string UStruct_Properties =
-"\tunsigned char\tUnknownData00[0x10];\t// 0x0070 (0x10) NOT AUTO-GENERATED PROPERTY\n"
-"\tclass UField*\tSuperField;\t// 0x0080 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tclass UField*\tChildren;\t// 0x0088 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned long\tPropertySize;\t// 0x0090 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData01[0x98];\t// 0x0094 (0x9C) NOT AUTO-GENERATED PROPERTY\n";
+	"\twhile (!FName::Names())\n"
+		"\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(100));\n\n"
 
-std::string UFunction_Properties =
-"\tunsigned long\tFunctionFlags;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tiNative;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tRepOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tstruct FName\tFriendlyName;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tNumParms;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tParmsSize;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned long\tReturnValueOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData00[0x8];\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tvoid*\tFunc;\t// NOT AUTO-GENERATED PROPERTY \n";
+	"\tstatic bool initialized = false;\n"
+	"\tstatic std::map<std::string, UClass*> loadedFunctions{};\n\n"
+
+	"\tif (!initialized)\n"
+	"\t{\n"
+		"\t\tfor (int i = 0; i < UObject::GObjObjects()->Num(); i++)\n"
+		"\t\t{\n"
+				"\t\t\tUObject* object = UObject::GObjObjects()->Data[i];\n\n"
+
+				"\t\t\tif (object)\n"
+				"\t\t\t{\n"
+				"\t\t\t\tstd::string objectFullName = object->GetFullName();\n\n"
+
+				"\t\t\t\tif (objectFullName.find(\"Function\") != std::string::npos)\n"
+				"\t\t\t\t\loadedFunctions[objectFullName] = (UClass*)object;\n"
+				"\t\t\t}\n"
+			"\t\t}\n\n"
+
+		"\t\tinitialized = true;\n"
+	"\t}\n\n"
+
+	"\tif (loadedFunctions.find(functionFullName) != loadedFunctions.end())\n"
+		"\t\treturn loadedFunctions[functionFullName];\n\n"
+
+	"\treturn nullptr;\n"
+"\t}\n\n";

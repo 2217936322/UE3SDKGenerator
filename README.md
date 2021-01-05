@@ -1,5 +1,5 @@
-# UE3SDKGenerator v2.0.1
-Internal SDK generator for Unreal Engine 3 games, for C++ 17.
+# UE3SDKGenerator v2.0.2
+Internal SDK generator for Unreal Engine 3 games.
 
 ### About
 UE3SDKGenerator is a more modernized & modular remake of TheFeckless's UE3 SDK Generator. It includes options such as using constant variables, address offsets instead of patterns, using enum classes instead of enums, use the VfTable for process event or use virtual functions instead, etc. This generator is not fully complete in terms of being "100% user friendly", but the generation part of it is completed. See usage for more information.
@@ -8,6 +8,9 @@ UE3SDKGenerator is a more modernized & modular remake of TheFeckless's UE3 SDK G
 By default there is one Engine file, Rocket League, included. To create your own just copy the folder and paste it in the Engine folder. The `GameDefines.h` file is game specific and will need to be changed acordingly. After that you can make your own changes to `Configuration.cpp` as needed, and you're ready to generate an SDK!
 
 ### Completed SDK
+
+I made a video tutorial on how to do all the following below, if you don't feel like reading: https://www.youtube.com/watch?v=e2igcsT-Yc8
+
 Once your SDK is complete you need to make a few changes to the generated files.
 
 If you're using virtual voids for process event `(UsingDetours = false)` you need to comment out "VfTableObject" from the UObject class.

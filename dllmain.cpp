@@ -942,9 +942,9 @@ namespace ClassGenerator
 
         classStream << "\n{\npublic:\n";
 
-        if (uClass == UObject::FindClass("Class Core.Field")) { classStream << UClass_Properties; }
-        else if (uClass == UObject::FindClass("Class Core.Struct")) { classStream << UStruct_Properties; }
-        else if (uClass == UObject::FindClass("Class Core.Function")) { classStream << UFunction_Properties; }
+        if (uClass == UObject::FindClass("Class Core.Field")) { classStream << UClass_Fields; }
+        else if (uClass == UObject::FindClass("Class Core.Struct")) { classStream << UStruct_Fields; }
+        else if (uClass == UObject::FindClass("Class Core.Function")) { classStream << UFunction_Fields; }
         else
         {
             std::map<std::string, uint32_t> propertyNameMap;
@@ -1123,8 +1123,8 @@ namespace ClassGenerator
 
         classStream << "public:\n";
 
-        if (uClass == UObject::FindClass("Class Core.Object"))
-            classStream << UObject_Properties;
+        if (uClass == UObject::FindClass("Class Core.Object")) classStream << UObject_FunctionDescriptions;
+        else if (uClass == UObject::FindClass("Class Core.Function")) classStream << UFunction_FunctionDescriptions;
 
         if (Configuration::UsingConstants)
         {
@@ -1446,6 +1446,7 @@ namespace FunctionGenerator
         std::vector<UFunction*> vFunction;
 
         static bool objectFunctions = false;
+        static bool functionFunctions = false;
 
         if (!objectFunctions && uClass == UObject::FindClass("Class Core.Object"))
         {
@@ -1467,6 +1468,13 @@ namespace FunctionGenerator
             }
 
             objectFunctions = true;
+        }
+
+        if (!objectFunctions && uClass == UObject::FindClass("Class Core.Function"))
+        {
+            codeStream << UFunction_FunctionDescriptions;
+
+            functionFunctions = true;
         }
 
         for (UProperty* uProperty = (UProperty*)uClass->Children; uProperty; uProperty = (UProperty*)uProperty->Next)
@@ -1925,6 +1933,7 @@ namespace Generator
         if (useIndex && Configuration::UsingConstants)
         {
             std::pair<std::string, int> pConstant = std::make_pair(name, uClass->ObjectInternalInteger);
+
             if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
                 vConstants.push_back(pConstant);
         }
@@ -1959,6 +1968,7 @@ namespace Generator
         if (useIndex && Configuration::UsingConstants)
         {
             std::pair<std::string, int> pConstant = std::make_pair(name, uFunction->ObjectInternalInteger);
+
             if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
                 vConstants.push_back(pConstant);
         }
@@ -1977,6 +1987,22 @@ namespace Generator
             fopen_s(&cFile, charBuffer, "w+");
 
             fprintf(cFile, "#pragma once");
+
+            for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
+            {
+                UObject* uObject = UObject::GObjObjects()->Data[i];
+
+                if (uObject && uObject->IsA(UFunction::StaticClass()))
+                {
+                    UFunction* uFunction = (UFunction*)uObject;
+                    std::string name = GenerateUniqueName(uFunction, (UClass*)uFunction->Outer, true);
+
+                    std::pair<std::string, int> pConstant = std::make_pair(name, uObject->ObjectInternalInteger);
+
+                    if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
+                        vConstants.push_back(pConstant);
+                }
+            }
 
             for (size_t i = 0; i < vConstants.size(); i++)
                 fprintf(cFile, "\n#define %-150s %d", vConstants[i].first.c_str(), vConstants[i].second);
@@ -2026,10 +2052,12 @@ namespace Generator
 
         fprintf(dFile, "#pragma once\n");
         fprintf(dFile, "#include <algorithm>\n");
-        fprintf(dFile, "#include <locale.h>\n");
+        fprintf(dFile, "#include <locale>\n");
         fprintf(dFile, "#include <stdlib.h>\n");
         fprintf(dFile, "#include <xlocale>\n");
         fprintf(dFile, "#include <ctype.h>\n");
+        fprintf(dFile, "#include <chrono>\n");
+        fprintf(dFile, "#include <thread>\n");
         fprintf(dFile, "#include <map>\n\n");
 
         fprintf(dFile, "// GObjects\n");
@@ -2083,11 +2111,14 @@ namespace Generator
         for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
         {
             UObject* uObject = UObject::GObjObjects()->Data[i];
+
             if (!uObject)
                 continue;
 
-            if (uObject->IsA(UClass::StaticClass())) {
+            if (uObject->IsA(UClass::StaticClass()))
+            {
                 UObject* uPackageObject = uObject->GetPackageObj();
+
                 if (!uPackageObject)
                     continue;
 

@@ -164,11 +164,14 @@ template<class T> static unsigned int UObject::CountObject(char const* objectNam
 
 UClass* UObject::FindClass(char const* classFullName)
 {
-	std::string sClassFullName = classFullName;
-	std::transform(sClassFullName.begin(), sClassFullName.end(), sClassFullName.begin(), ::tolower);
+	while (!UObject::GObjObjects())
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	static std::map<std::string, UClass*> foundClasses = {};
+	while (!FName::Names())
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 	static bool initialized = false;
+	static std::map<std::string, UClass*> loadedClasses{};
 
 	if (!initialized)
 	{
@@ -176,20 +179,22 @@ UClass* UObject::FindClass(char const* classFullName)
 		{
 			UObject* object = UObject::GObjObjects()->Data[i];
 
-			if (!object)
-				continue;
+			if (object)
+			{
+				std::string objectFullName = object->GetFullName();
 
-			std::string objectFullName = std::string(object->GetFullName());
-			std::transform(objectFullName.begin(), objectFullName.end(), objectFullName.begin(), ::tolower);
-
-			if (objectFullName.find("class") != std::string::npos && foundClasses.find(objectFullName) == foundClasses.end())
-				foundClasses[objectFullName] = (UClass*)object;
+				if (objectFullName.find("Class") != std::string::npos)
+					loadedClasses[objectFullName] = (UClass*)object;
+			}
 		}
 
 		initialized = true;
 	}
 
-	return foundClasses[sClassFullName];
+	if (loadedClasses.find(classFullName) != loadedClasses.end())
+		return loadedClasses[classFullName];
+
+	return nullptr;
 }
 
 bool UObject::IsA(UClass* pClass)

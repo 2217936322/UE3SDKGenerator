@@ -22,6 +22,7 @@
 	- More detailed log
 	- memcpy_s instead of memcpy
 	- Make it look less shit
+	- reference for out params
 */
 
 namespace Utils
