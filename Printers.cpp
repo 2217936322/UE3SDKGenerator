@@ -1,5 +1,5 @@
 #include "Printers.h"
-#include "Configuration.h"
+#include "Engine/Rocket League/Configuration.h"
 
 namespace Printers
 {

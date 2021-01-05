@@ -16,6 +16,7 @@
 #include "Engine/Rocket League/GameDefines.h"
 #include "Engine/Rocket League/ObjectFunctions.h"
 #include "Engine/Rocket League/PiecesOfCode.h"
+#include "Engine/Rocket League/Configuration.h"
 
 /*
 	TO-DO:

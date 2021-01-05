@@ -1,5 +1,4 @@
 #include "dllmain.h"
-#include "Configuration.h"
 #include "Printers.h"
 
 namespace Utils
@@ -1649,7 +1648,7 @@ namespace FunctionGenerator
                 codeStream << ")\n{\n"
                 << "\tstatic UFunction* pFn" << sFunctionName << " = nullptr;\n\n"
                 << "\tif (!pFn" << sFunctionName << ")\n"
-                << "\t\tpFn" << sFunctionName << " = UObject::FindObject<UFunction>(\"" << sFunctionFullName << "\");\n\n"
+                << "\t\tpFn" << sFunctionName << " = (UFunction*)UFunction::FindFunction(\"" << sFunctionFullName << "\");\n\n"
                 << "\t" << sClassNameCPP << "_";
             }
 
@@ -1687,7 +1686,7 @@ namespace FunctionGenerator
                 codeStream << ";\n";
             }
 
-            codeStream << "\n\tthis->ProcessEvent(pFn" << sFunctionName << ", &" << sFunctionName << "_Parms, NULL);\n";
+            codeStream << "\n\tthis->ProcessEvent(pFn" << sFunctionName << ", &" << sFunctionName << "_Parms, nullptr);\n";
 
             if (pFunction->FunctionFlags & EFunctionFlags::FUNC_Native)
             {
