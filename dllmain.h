@@ -20,10 +20,10 @@
 
 /*
 	TO-DO:
+	- Create seperate files for UE functions that aren't used by any classes
 	- More detailed log
 	- memcpy_s instead of memcpy
 	- Make it look less shit
-	- reference for out params
 */
 
 namespace Utils
@@ -36,6 +36,8 @@ namespace Utils
 	bool SortProperty(UProperty* pPropertyA, UProperty* pPropertyB);
 	bool IsBitField(EPropertyTypes propertyType);
 	bool IsBitField(uint32_t arrayDim);
+	bool AreGObjectsValid();
+	bool AreGNamesValid();
 }
 
 namespace Retrievers

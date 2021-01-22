@@ -127,6 +127,25 @@ namespace Utils
 
         return false;
     }
+
+    bool AreGObjectsValid()
+    {
+        if (GObjects->Count > 0 && GObjects->Max > GObjects->Num())
+        {
+            if (std::string(UObject::GObjObjects()->Data[0]->GetFullName()) == "Class Core.Config_ORS")
+                return true;
+        }
+
+        return false;
+    }
+
+    bool AreGNamesValid()
+    {
+        if (GNames->Count > 0 && GNames->Max > GNames->Num())
+            return true;
+
+        return false;
+    }
 }
 
 namespace Retrievers
@@ -864,10 +883,12 @@ namespace EnumGenerator
         for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
         {
             UObject* uObject = UObject::GObjObjects()->Data[i];
+
             if (!uObject)
                 continue;
 
             UObject* uPackageObject = uObject->GetPackageObj();
+
             if (!uPackageObject)
                 continue;
 
@@ -982,6 +1003,7 @@ namespace ClassGenerator
                 }
 
                 std::string sPropertyType;
+
                 if (Retrievers::GetPropertyType(uProperty, sPropertyType, false) != EPropertyTypes::TYPE_UnknownData)
                 {
                     size_t correctElementSize = Retrievers::GetPropertySize(uProperty);
@@ -1225,10 +1247,12 @@ namespace ClassGenerator
         for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
         {
             UObject* uObject = UObject::GObjObjects()->Data[i];
+
             if (!uObject)
                 continue;
 
             UObject* uPackageObject = uObject->GetPackageObj();
+
             if (!uPackageObject)
                 continue;
 
@@ -1393,10 +1417,12 @@ namespace ParameterGenerator
         for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
         {
             UObject* uObject = UObject::GObjObjects()->Data[i];
+
             if (!uObject)
                 continue;
 
             UObject* uPackageObject = uObject->GetPackageObj();
+
             if (!uPackageObject)
                 continue;
 
@@ -1416,12 +1442,12 @@ namespace FunctionGenerator
 
         uintptr_t VfTable = uClass->VfTableObject.Dummy;
 
-        for (uintptr_t i = 0x0; i < 0x400; i += 0x8)
+        for (uintptr_t i = 0x0; i < 0x400; i += Configuration::Alignment)
         {
             if (Utils::FindPattern(*(uintptr_t*)(VfTable + i), 0x200, Configuration::ProcessEventPattern, Configuration::ProcessEventMask))
             {
                 functionStream << "\tvirtual void ProcessEvent(class UFunction* pFunction, void* pParms, void* pResult = nullptr);\t\t\t\t// ";
-                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), 8);
+                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), Configuration::Alignment);
                 functionStream << " (";
                 Printers::MakeHex(functionStream, i, 2);
                 functionStream << ")\n";
@@ -1430,9 +1456,9 @@ namespace FunctionGenerator
             else
             {
                 functionStream << "\tvirtual void VirtualFunction";
-                Printers::MakeDecimal(functionStream, (i / 0x8), static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
+                Printers::MakeDecimal(functionStream, (i / Configuration::Alignment), static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
                 functionStream << " ();\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t// ";
-                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), 8);
+                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), Configuration::Alignment);
                 functionStream << " (";
                 Printers::MakeHex(functionStream, i, static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
                 functionStream << ")\n";
@@ -1798,8 +1824,6 @@ namespace FunctionGenerator
                 functionStream << "\tvoid";
             }
 
-            //functionStream << " " << functionName << "(";
-
             if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Exec) { functionStream << " " << functionName << "("; }
             else if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { functionStream << " event" << functionName << "("; }
             else { functionStream << " " << functionName << "("; }
@@ -1850,10 +1874,12 @@ namespace FunctionGenerator
         for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
         {
             UObject* uObject = UObject::GObjObjects()->Data[i];
+
             if (!uObject)
                 continue;
 
             UObject* uPackageObject = uObject->GetPackageObj();
+
             if (!uPackageObject)
                 continue;
 
@@ -2214,30 +2240,38 @@ namespace Generator
         GetSystemTime(&stST);
         MessageBox(NULL, (LPCWSTR)L"SDK generation has started, do not close the game until prompted to do so!", (LPCWSTR)L"UE3SDKGenerator", MB_ICONINFORMATION | MB_OK);
         Initialize(logFile);
-        ProcessPackages();
-        GenerateConstants();
-        GenerateHeaders();
-        GenerateDefines();
 
-        GetSystemTime(&stET);
-        SystemTimeToFileTime(&stST, &ftST);
-        nST.HighPart = ftST.dwHighDateTime;
-        nST.LowPart = ftST.dwLowDateTime;
-        SystemTimeToFileTime(&stET, &ftET);
-        nET.HighPart = ftET.dwHighDateTime;
-        nET.LowPart = ftET.dwLowDateTime;
+        if (Utils::AreGObjectsValid() && Utils::AreGNamesValid())
+        {
+            ProcessPackages();
+            GenerateConstants();
+            GenerateHeaders();
+            GenerateDefines();
 
-        fDiff = (nET.QuadPart - nST.QuadPart) / 10000.0f / 1000.0f;
+            GetSystemTime(&stET);
+            SystemTimeToFileTime(&stST, &ftST);
+            nST.HighPart = ftST.dwHighDateTime;
+            nST.LowPart = ftST.dwLowDateTime;
+            SystemTimeToFileTime(&stET, &ftET);
+            nET.HighPart = ftET.dwHighDateTime;
+            nET.LowPart = ftET.dwLowDateTime;
 
-        fprintf(logFile, "\nSDK Generated in %.3f seconds", fDiff);
-        fclose(logFile);
+            fDiff = (nET.QuadPart - nST.QuadPart) / 10000.0f / 1000.0f;
 
-        MessageBox(NULL, (LPCWSTR)L"Finished! It is now safe to close the game.", (LPCWSTR)L"UE3SDKGenerator", MB_ICONINFORMATION | MB_OK);
+            fprintf(logFile, "\nSDK Generated in %.3f seconds", fDiff);
+            fclose(logFile);
+
+            MessageBox(NULL, (LPCWSTR)L"Finished! It is now safe to close the game.", (LPCWSTR)L"UE3SDKGenerator", MB_ICONINFORMATION | MB_OK);
+        }
+        else
+        {
+            MessageBox(NULL, (LPCWSTR)L"Failed to validate GObject & GNames, please make sure you have them configured properly! SDK generation has been aborted.", (LPCWSTR)L"UE3SDKGenerator", MB_ICONERROR | MB_OK);
+        }
     }
 
     void DumpInstances()
     {
-        Initialize(NULL);
+        Initialize(nullptr);
 
         uintptr_t baseAddress = (uintptr_t)GetModuleHandle(NULL);
 

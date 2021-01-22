@@ -8,7 +8,7 @@
 */
 
 std::string TArray_Struct =
-"template<class T> struct TArray\n"
+"template<typename T> struct TArray\n"
 "{\n"
 "public:\n"
 "\tT* Data;\n"
@@ -222,8 +222,8 @@ std::string UObject_FunctionDescriptions =
 "\t//char const* GetPackageName();\n"
 "\tUObject* GetPackageObj();\n\n"
 
-"\ttemplate<class T> static T* FindObject(char const* objectFullName);\n"
-"\ttemplate<class T> static unsigned int CountObject(char const* objectName);\n"
+"\ttemplate<typename T> static T* FindObject(char const* objectFullName);\n"
+"\ttemplate<typename T> static unsigned int CountObject(char const* objectName);\n"
 "\tstatic UClass* FindClass(char const* classFullName);\n\n"
 
 "\tbool IsA(UClass* pClass);\n"
@@ -327,7 +327,7 @@ std::string UObject_Functions =
 	"\treturn pPackage;\n"
 "}\n\n"
 
-"template<class T> T* UObject::FindObject(char const* objectFullName)\n"
+"template<typename T> T* UObject::FindObject(char const* objectFullName)\n"
 "{\n"
 	"\tfor (int i = 0; i < UObject::GObjObjects()->Num(); i++)\n"
 	"\t{\n"
@@ -343,7 +343,7 @@ std::string UObject_Functions =
 	"\treturn nullptr;\n"
 "}\n\n"
 
-"template<class T> static unsigned int UObject::CountObject(char const* objectName)\n"
+"template<typename T> static unsigned int UObject::CountObject(char const* objectName)\n"
 "{\n"
 	"\tstatic std::map<std::string, int> mCountCache;\n"
 	"\tstd::string sObjectName = objectName;\n\n"
