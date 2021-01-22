@@ -19,7 +19,7 @@ namespace Configuration
     //int ProcessEventIndex = 67;
     const unsigned char* ProcessEventPattern = (const unsigned char*)"(null)";
     const char* ProcessEventMask = (const char*)"(null)";
-    //uintptr_t ProcessEventOffset = (uintptr_t)0x327FDA;
+    //uintptr_t ProcessEventOffset = (uintptr_t)0x0;
 
     const unsigned char* GObjectsPattern = (const unsigned char*)"(null)";
     const char* GObjectsMask = (const char*)"(null)";

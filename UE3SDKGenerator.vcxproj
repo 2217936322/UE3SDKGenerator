@@ -140,14 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Engine\Rocket League\Configuration.cpp" />
     <ClCompile Include="Engine\Rocket League\GameDefines.cpp" />
     <ClCompile Include="Printers.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Configuration.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="Engine\Rocket League\Configuration.h" />
     <ClInclude Include="Engine\Rocket League\GameDefines.h" />
     <ClInclude Include="Engine\Rocket League\ObjectFunctions.h" />
     <ClInclude Include="Engine\Rocket League\PiecesOfCode.h" />

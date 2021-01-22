@@ -211,7 +211,7 @@ std::string UFunction_Fields =
 "\tunsigned short\tParmsSize;\t// NOT AUTO-GENERATED PROPERTY\n"
 "\tunsigned long\tReturnValueOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
 "\tunsigned char\tUnknownData00[0x8];\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tvoid*\tFunc;\t// NOT AUTO-GENERATED PROPERTY \n";
+"\tvoid*\t\t\tFunc;\t// NOT AUTO-GENERATED PROPERTY \n";
 
 std::string UObject_FunctionDescriptions =
 "\tstatic TArray<UObject*>* GObjObjects();\n\n"
@@ -228,9 +228,6 @@ std::string UObject_FunctionDescriptions =
 
 "\tbool IsA(UClass* pClass);\n"
 "\tbool IsA(int objInternalInteger);\n\n";
-
-std::string UFunction_FunctionDescriptions =
-"\tstatic UFunction* FindFunction(char const* functionFullName);\n";
 
 std::string UObject_Functions =
 "TArray<UObject*>* UObject::GObjObjects()\n"

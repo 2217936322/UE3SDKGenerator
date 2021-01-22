@@ -1122,8 +1122,8 @@ namespace ClassGenerator
 
         classStream << "public:\n";
 
-        if (uClass == UObject::FindClass("Class Core.Object")) classStream << UObject_FunctionDescriptions;
-        else if (uClass == UObject::FindClass("Class Core.Function")) classStream << UFunction_FunctionDescriptions;
+        if (uClass == UObject::FindClass("Class Core.Object"))
+            classStream << UObject_FunctionDescriptions;
 
         if (Configuration::UsingConstants)
         {
@@ -1160,6 +1160,10 @@ namespace ClassGenerator
             {
                 FunctionGenerator::GenerateVirtualFunction(file, uClass);
             }
+        }
+        else if (uClass == UObject::FindClass("Class Core.Function"))
+        {
+            classStream << "\tstatic UFunction* FindFunction(char const* functionFullName);\n";
         }
 
         classStream << "};\n\n";
@@ -1471,7 +1475,7 @@ namespace FunctionGenerator
 
         if (!objectFunctions && uClass == UObject::FindClass("Class Core.Function"))
         {
-            codeStream << UFunction_FunctionDescriptions;
+            codeStream << UFunction_Functions;
 
             functionFunctions = true;
         }

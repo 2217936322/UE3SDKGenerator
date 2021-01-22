@@ -20,21 +20,18 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Configuration.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Printers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Rocket League\GameDefines.cpp">
       <Filter>Engine\Rocket League</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Rocket League\Configuration.cpp">
+      <Filter>Engine\Rocket League</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dllmain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Configuration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
@@ -50,6 +47,9 @@
       <Filter>Engine\Rocket League</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Rocket League\PiecesOfCode.h">
+      <Filter>Engine\Rocket League</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Rocket League\Configuration.h">
       <Filter>Engine\Rocket League</Filter>
     </ClInclude>
   </ItemGroup>
