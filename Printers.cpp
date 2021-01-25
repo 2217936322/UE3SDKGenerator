@@ -63,7 +63,11 @@ namespace Printers
             if (fileExtension == "h" && fileName != "GameDefines")
             {
                 fprintf(file, "#pragma once\n");
-                fprintf(file, "#include \"../SdkConstants.h\"\n");
+
+                if (Configuration::UsingConstants)
+                {
+                    fprintf(file, "#include \"../SdkConstants.h\"\n");
+                }
             }
             else if (fileExtension == "cpp" && fileName != "GameDefines")
             {
