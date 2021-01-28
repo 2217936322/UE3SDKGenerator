@@ -98,6 +98,7 @@ namespace Generator
 	std::string GenerateValidName(const std::string& invalidName);
 	std::string GenerateUniqueName(UClass* uClass, bool useIndex);
 	std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass, bool useIndex);
+	std::string GenerateIndexName(UObject* uObject, bool pushBack);
 	void GenerateConstants();
 	void GenerateHeaders();
 	void GenerateDefines();

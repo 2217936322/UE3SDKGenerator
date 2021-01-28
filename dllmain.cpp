@@ -1153,7 +1153,7 @@ namespace ClassGenerator
                 << "\t{\n"
                 << "\t\tstatic UClass* pClassPointer = nullptr;\n\n"
                 << "\t\tif (!pClassPointer)\n"
-                << "\t\t\tpClassPointer = (UClass*)UObject::GObjObjects()->Data[" << Generator::GenerateUniqueName(uClass, true) << "];\n\n"
+                << "\t\t\tpClassPointer = (UClass*)UObject::GObjObjects()->Data[" << Generator::GenerateValidName(Generator::GenerateIndexName(uClass, true)) << "];\n\n"
                 << "\t\treturn pClassPointer;\n"
                 << "\t};\n\n";
         }
@@ -1670,7 +1670,7 @@ namespace FunctionGenerator
                 codeStream << ")\n{\n"
                 << "\tstatic UFunction* pFn" << sFunctionName << " = nullptr;\n\n"
                 << "\tif (!pFn" << sFunctionName << ")\n"
-                << "\t\tpFn" << sFunctionName << " = (UFunction*)UObject::GObjObjects()->Data[" << Generator::GenerateUniqueName(pFunction, uClass, true) << "];\n\n"
+                << "\t\tpFn" << sFunctionName << " = (UFunction*)UObject::GObjObjects()->Data[" << Generator::GenerateValidName(Generator::GenerateIndexName(pFunction, true)) << "];\n\n"
                 << "\t" << sClassNameCPP << "_";
             }
             else
@@ -1899,7 +1899,7 @@ namespace Generator
     {
         std::string newName = invalidName;
 
-        for (size_t i = 0; i < newName.length(); ++i)
+        for (size_t i = 0; i < newName.size(); ++i)
         {
             if (newName[i] == ' '
                 || newName[i] == '?'
@@ -2005,6 +2005,35 @@ namespace Generator
         return name;
     }
 
+    std::string GenerateIndexName(UObject* uObject, bool pushBack)
+    {
+        std::string objectFullName = uObject->GetFullName();
+
+        for (size_t i = 0; i < objectFullName.length(); i++)
+            objectFullName[i] = std::toupper(objectFullName[i]);
+
+        for (size_t i = 0; i < objectFullName.length(); ++i)
+        {
+            if (objectFullName[i] == ' '
+                || objectFullName[i] == '.')
+            {
+                objectFullName[i] = '_';
+            }
+        }
+
+        objectFullName = "IDX_" + objectFullName;
+
+        if (Configuration::UsingConstants && pushBack)
+        {
+            std::pair<std::string, int> pConstant = std::make_pair(objectFullName, uObject->ObjectInternalInteger);
+
+            if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
+                vConstants.push_back(pConstant);
+        }
+
+        return objectFullName;
+    }
+
     void GenerateConstants()
     {
         if (Configuration::UsingConstants)
@@ -2021,12 +2050,12 @@ namespace Generator
             {
                 UObject* uObject = UObject::GObjObjects()->Data[i];
 
-                if (uObject && uObject->IsA(UFunction::StaticClass()))
+                if (uObject && (uObject->IsA(UFunction::StaticClass()) || uObject->IsA(UClass::StaticClass())))
                 {
-                    UFunction* uFunction = (UFunction*)uObject;
-                    std::string name = GenerateUniqueName(uFunction, (UClass*)uFunction->Outer, true);
+                    std::string objectFullName = GenerateIndexName(uObject, false);
+                    objectFullName = GenerateValidName(objectFullName);
 
-                    std::pair<std::string, int> pConstant = std::make_pair(name, uObject->ObjectInternalInteger);
+                    std::pair<std::string, int> pConstant = std::make_pair(objectFullName, uObject->ObjectInternalInteger);
 
                     if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
                         vConstants.push_back(pConstant);
