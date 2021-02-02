@@ -122,7 +122,7 @@ UObject* UObject::GetPackageObj()
 	return pPackage;
 }
 
-template<class T> T* UObject::FindObject(char const* objectFullName)
+template<typename T> T* UObject::FindObject(char const* objectFullName)
 {
 	for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
 	{
@@ -138,7 +138,7 @@ template<class T> T* UObject::FindObject(char const* objectFullName)
 	return nullptr;
 }
 
-template<class T> static unsigned int UObject::CountObject(char const* objectName)
+template<typename T> static unsigned int UObject::CountObject(char const* objectName)
 {
 	static std::map<std::string, int> mCountCache;
 	std::string sObjectName = objectName;

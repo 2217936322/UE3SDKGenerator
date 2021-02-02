@@ -138,7 +138,7 @@ enum class EWidthTypes : uint32_t
 	WIDTH_PropertyFlags = 16
 };
 
-template<class T> struct TArray
+template<typename T> struct TArray
 {
 public:
 	T* Data;
@@ -161,10 +161,10 @@ public:
 		return Data[index];
 	}
 
-	void Add(T inputData)
+	void Add(T data)
 	{
 		Data = (T*)realloc(Data, sizeof(T) * (Count + 1));
-		Data[Count++] = inputData;
+		Data[Count++] = data;
 		Max = Count;
 	}
 
@@ -214,19 +214,21 @@ public:
 
 	FName(int i)
 	{
-		Number = 0;
 		Index = i;
+		Number = 0;
 	}
+
+	~FName() {};
 public:
-	bool operator == (const FName& a) const
+	bool operator == (const FName& name) const
 	{
-		return (Index == a.Index);
+		return (Index == name.Index);
 	}
 
 	static TArray<FNameEntry*>* Names()
 	{
-		TArray<FNameEntry*>* NameArray = (TArray<FNameEntry*>*)GNames;
-		return NameArray;
+		TArray<FNameEntry*>* GNamesArray = (TArray<FNameEntry*>*)GNames;
+		return GNamesArray;
 	}
 
 	FName(const wchar_t* findName)
@@ -234,9 +236,9 @@ public:
 		static TArray<int> nameCache;
 		for (int i = 0; i < nameCache.Num(); i++)
 		{
-			if (this->Names()->Data[i])
+			if (Names()->Data[i])
 			{
-				if (!wcscmp(this->Names()->Data[nameCache[i]]->Name, findName))
+				if (!wcscmp(Names()->Data[nameCache[i]]->Name, findName))
 				{
 					Index = nameCache[i];
 					return;
@@ -244,11 +246,11 @@ public:
 			}
 		}
 
-		for (int i = 0; i < this->Names()->Num(); i++)
+		for (int i = 0; i < Names()->Num(); i++)
 		{
-			if (this->Names()->Data[i])
+			if (Names()->Data[i])
 			{
-				if (!wcscmp(this->Names()->Data[i]->Name, findName))
+				if (!wcscmp(Names()->Data[i]->Name, findName))
 				{
 					nameCache.Add(i);
 					Index = i;
@@ -257,15 +259,15 @@ public:
 		}
 	}
 
-	std::string GetName() const
+	std::string GetName()
 	{
-		if (Index < 0 || Index > this->Names()->Num())
+		if (Index < 0 || Index > Names()->Num())
 		{
 			return std::string("UnknownName");
 		}
 		else
 		{
-			std::wstring ws(this->Names()->Data[Index]->Name);
+			std::wstring ws(Names()->Data[Index]->Name);
 			std::string str(ws.begin(), ws.end());
 			return str;
 		}
@@ -275,22 +277,26 @@ public:
 struct FString : public TArray<const wchar_t>
 {
 public:
-	FString(const wchar_t* Other)
+	FString() {};
+
+	~FString() {};
+public:
+	FString(const wchar_t* other)
 	{
-		this->Max = this->Count = *Other ? (wcslen(Other) + 1) : 0;
+		this->Max = this->Count = *other ? (wcslen(other) + 1) : 0;
 
 		if (this->Count)
-			this->Data = Other;
+			this->Data = other;
 	}
 
-	FString operator = (const wchar_t* Other)
+	FString operator = (const wchar_t* other)
 	{
-		if (this->Data != Other)
+		if (this->Data != other)
 		{
-			this->Max = this->Count = *Other ? (wcslen(Other) + 1) : 0;
+			this->Max = this->Count = *other ? (wcslen(other) + 1) : 0;
 
 			if (this->Count)
-				this->Data = Other;
+				this->Data = other;
 		}
 
 		return *this;
@@ -306,9 +312,9 @@ public:
 		}
 		else
 		{
-			return std::string("(null)");
+			return std::string("null");
 		}
-	}
+	};
 };
 
 struct FScriptDelegate
@@ -352,21 +358,6 @@ public:
 	class UClass*			Class;                                  // 0x0050 (0x08)
 	class UObject*			ObjectArchetype;						// 0x0058 (0x08)
 public:
-	static TArray<UObject*>* GObjObjects();
-
-	char const* GetName();
-	char const* GetNameCPP();
-	char const* GetFullName();
-	char const* GetPackageName();
-	UObject* GetPackageObj();
-
-	template<class T> static T* FindObject(char const* objectFullName);
-	template<class T> static unsigned int CountObject(char const* objectName);
-	static UClass* FindClass(char const* classFullName);
-
-	bool IsA(UClass* pClass);
-	bool IsA(int objInternalInteger);
-
 	static UClass* StaticClass()
 	{
 		static UClass* pClassPointer = nullptr;
@@ -376,6 +367,21 @@ public:
 
 		return pClassPointer;
 	};
+
+	static TArray<UObject*>* GObjObjects();
+
+	char const* GetName();
+	char const* GetNameCPP();
+	char const* GetFullName();
+	char const* GetPackageName();
+	UObject* GetPackageObj();
+
+	template<typename T> static T* FindObject(char const* objectFullName);
+	template<typename T> static unsigned int CountObject(char const* objectName);
+	static UClass* FindClass(char const* classFullName);
+
+	bool IsA(UClass* pClass);
+	bool IsA(int objInternalInteger);
 };
 
  //Class Core.Field
@@ -618,7 +624,6 @@ public:
 	};
 };
 
-// Noted
 // Class Core.ComponentProperty
 // 0x0010 (0x00C8 - 0x00D8)
 class UComponentProperty : public UProperty
