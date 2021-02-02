@@ -407,7 +407,7 @@ std::string UObject_Functions =
 	"\tfor (UClass* SuperClass = this->Class; SuperClass; SuperClass = (UClass*)SuperClass->SuperField)\n"
 	"\t{\n"
 		"\t\tif (SuperClass == pClass)\n"
-			"\t\treturn true;\n"
+			"\t\t\treturn true;\n"
 	"\t}\n\n"
 
 	"\treturn false;\n"
