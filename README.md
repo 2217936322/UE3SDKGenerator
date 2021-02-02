@@ -1,4 +1,4 @@
-# UE3SDKGenerator v2.0.4
+# UE3SDKGenerator v2.0.5
 Internal SDK generator for Unreal Engine 3 games.
 
 ### About
