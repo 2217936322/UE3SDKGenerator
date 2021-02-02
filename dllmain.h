@@ -96,8 +96,8 @@ namespace Generator
 	extern std::vector<UObject*> vIncludes;
 
 	std::string GenerateValidName(const std::string& invalidName);
-	std::string GenerateUniqueName(UClass* uClass, bool useIndex);
-	std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass, bool useIndex);
+	std::string GenerateUniqueName(UClass* uClass);
+	std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass);
 	std::string GenerateIndexName(UObject* uObject, bool pushBack);
 	void GenerateConstants();
 	void GenerateHeaders();

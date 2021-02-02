@@ -812,6 +812,9 @@ namespace EnumGenerator
 
         uint32_t enumCount = UObject::CountObject<UEnum>(uEnum->GetName());
 
+        if (sEnumName.find("E") != 0)
+            sEnumName = "E" + sEnumName;
+
         if (enumCount > 1)
         {
             if (Configuration::UsingEnumClasses)
@@ -1625,9 +1628,26 @@ namespace FunctionGenerator
                 codeStream << "\nvoid";
             }
 
+
+            size_t gctW = sFunctionName.find("GetCurrentTime");
+            size_t goW = sFunctionName.find("GetObject");
+            size_t dfW = sFunctionName.find("DeleteFile");
+            size_t dtW = sFunctionName.find("DrawText");
+
+            if (gctW != std::string::npos)
+                sFunctionName += "W";
+
+            if (goW != std::string::npos)
+                sFunctionName += "W";
+
+            if (dfW != std::string::npos)
+                sFunctionName += "W";
+
+            if (dtW != std::string::npos)
+                sFunctionName += "W";
+
             if (pFunction->FunctionFlags & EFunctionFlags::FUNC_Exec) { codeStream << " " << sClassNameCPP << "::" << sFunctionName << "("; }
             else if (pFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { codeStream << " " << sClassNameCPP << "::event" << sFunctionName << "("; }
-            //else if (pFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { codeStream << " " << sClassNameCPP << "::" << sFunctionName << "("; }
             else { codeStream << " " << sClassNameCPP << "::" << sFunctionName << "("; }
 
             bool printComma = false;
@@ -1775,7 +1795,7 @@ namespace FunctionGenerator
         {
             UFunction* uFunction = vFunction[i];
 
-            std::string functionName = Generator::GenerateValidName(std::string(uFunction->GetName()));
+            std::string sFunctionName = Generator::GenerateValidName(std::string(uFunction->GetName()));
 
             std::vector<std::pair<UProperty*, std::string>> vProperty_Parms;
             std::vector<std::pair<UProperty*, std::string>> vProperty_OutParms;
@@ -1824,9 +1844,26 @@ namespace FunctionGenerator
                 functionStream << "\tvoid";
             }
 
-            if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Exec) { functionStream << " " << functionName << "("; }
-            else if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { functionStream << " event" << functionName << "("; }
-            else { functionStream << " " << functionName << "("; }
+            size_t gctW = sFunctionName.find("GetCurrentTime");
+            size_t goW = sFunctionName.find("GetObject");
+            size_t dfW = sFunctionName.find("DeleteFile");
+            size_t dtW = sFunctionName.find("DrawText");
+
+            if (gctW != std::string::npos)
+                sFunctionName += "W";
+
+            if (goW != std::string::npos)
+                sFunctionName += "W";
+
+            if (dfW != std::string::npos)
+                sFunctionName += "W";
+
+            if (dtW != std::string::npos)
+                sFunctionName += "W";
+
+            if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Exec) { functionStream << " " << sFunctionName << "("; }
+            else if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { functionStream << " event" << sFunctionName << "("; }
+            else { functionStream << " " << sFunctionName << "("; }
 
             bool printComma = false;
 
@@ -1928,7 +1965,7 @@ namespace Generator
         return newName;
     }
 
-    std::string GenerateUniqueName(UClass* uClass, bool useIndex)
+    std::string GenerateUniqueName(UClass* uClass)
     {
         std::ostringstream nameBuffer;
 
@@ -1938,14 +1975,7 @@ namespace Generator
         for (size_t i = 0; i < classNameCPP.size(); i++)
             classNameCPP[i] = std::toupper(classNameCPP[i]);
 
-        if (useIndex)
-        {
-            nameBuffer << "IDX_" << classNameCPP;
-        }
-        else
-        {
-            nameBuffer << classNameCPP;
-        }
+        nameBuffer << classNameCPP;
 
         if (superClass)
         {
@@ -1957,20 +1987,10 @@ namespace Generator
             nameBuffer << "_" << superClassNameCPP;
         }
 
-        std::string name = nameBuffer.str();
-
-        if (useIndex && Configuration::UsingConstants)
-        {
-            std::pair<std::string, int> pConstant = std::make_pair(name, uClass->ObjectInternalInteger);
-
-            if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
-                vConstants.push_back(pConstant);
-        }
-
-        return name;
+        return nameBuffer.str();
     }
 
-    std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass, bool useIndex)
+    std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass)
     {
         std::ostringstream nameBuffer;
 
@@ -1983,26 +2003,9 @@ namespace Generator
         for (size_t i = 0; i < classNameCPP.size(); i++)
             classNameCPP[i] = std::toupper(classNameCPP[i]);
 
-        if (useIndex)
-        {
-            nameBuffer << "IDX_" << classNameCPP << "_" << functionName;
-        }
-        else
-        {
-            nameBuffer << classNameCPP << "_" << functionName;
-        }
+        nameBuffer << classNameCPP << "_" << functionName;
 
-        std::string name = nameBuffer.str();
-
-        if (useIndex && Configuration::UsingConstants)
-        {
-            std::pair<std::string, int> pConstant = std::make_pair(name, uFunction->ObjectInternalInteger);
-
-            if (std::find(vConstants.begin(), vConstants.end(), pConstant) == vConstants.end())
-                vConstants.push_back(pConstant);
-        }
-
-        return name;
+        return nameBuffer.str();
     }
 
     std::string GenerateIndexName(UObject* uObject, bool pushBack)
