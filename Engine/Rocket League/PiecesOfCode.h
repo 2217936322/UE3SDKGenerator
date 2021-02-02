@@ -238,7 +238,7 @@ std::string UObject_Functions =
 
 "char const* UObject::GetName()\n"
 "{\n"
-"\tstatic char cOutBuffer[256];\n"
+"\tstatic char cOutBuffer[512];\n"
 "\tmemset(cOutBuffer, 0, sizeof cOutBuffer);\n"
 "\tstd::string name = this->Name.GetName();\n"
 "\tsprintf_s(cOutBuffer, \"%s\", name.c_str());\n\n"
@@ -248,7 +248,7 @@ std::string UObject_Functions =
 
 "char const* UObject::GetNameCPP()\n"
 "{\n"
-	"\tstatic char cOutBuffer[256];\n\n"
+	"\tstatic char cOutBuffer[512];\n\n"
 
 	"\tif (this->IsA(UClass::StaticClass()))\n"
 	"\t{\n"
@@ -286,8 +286,8 @@ std::string UObject_Functions =
 "{\n"
 	"\tif (this->Class && this->Outer)\n"
 	"\t{\n"
-		"\t\tstatic char cOutBuffer[512];\n"
-		"\t\tchar cTmpBuffer[512];\n"
+		"\t\tstatic char cOutBuffer[1024];\n"
+		"\t\tchar cTmpBuffer[1024];\n"
 		"\t\tstrcpy_s(cOutBuffer, this->GetName());\n\n"
 
 		"\t\tfor (UObject* pOuter = this->Outer; pOuter; pOuter = pOuter->Outer)\n"

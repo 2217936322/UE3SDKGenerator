@@ -19,7 +19,7 @@ TArray<UObject*>* UObject::GObjObjects()
 
 char const* UObject::GetName()
 {
-	static char cOutBuffer[1024];
+	static char cOutBuffer[512];
 	memset(cOutBuffer, 0, sizeof cOutBuffer);
 	std::string name = this->Name.GetName();
 	sprintf_s(cOutBuffer, "%s", name.c_str());
@@ -29,7 +29,7 @@ char const* UObject::GetName()
 
 char const* UObject::GetNameCPP()
 {
-	static char cOutBuffer[1024];
+	static char cOutBuffer[512];
 
 	if (this->IsA(UClass::StaticClass()))
 	{
@@ -104,7 +104,7 @@ char const* UObject::GetPackageName()
 
 	if (pPackage)
 	{
-		static char cOutBuffer[256];
+		static char cOutBuffer[512];
 		strcpy_s(cOutBuffer, pPackage->GetName());
 		return cOutBuffer;
 	}
