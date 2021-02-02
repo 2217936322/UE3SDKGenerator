@@ -1304,6 +1304,23 @@ namespace ParameterGenerator
             else if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Event) { propertyStream << "event"; }
             else { propertyStream << "exec"; }
 
+            size_t gctW = functionName.find("GetCurrentTime");
+            size_t goW = functionName.find("GetObject");
+            size_t dfW = functionName.find("DeleteFile");
+            size_t dtW = functionName.find("DrawText");
+
+            if (gctW != std::string::npos)
+                functionName += "W";
+
+            if (goW != std::string::npos)
+                functionName += "W";
+
+            if (dfW != std::string::npos)
+                functionName += "W";
+
+            if (dtW != std::string::npos)
+                functionName += "W";
+
             parameterStream << "\nstruct " << classNameCPP << "_" << propertyStream.str() << functionName << "_Parms\n" << "{\n";
 
             Printers::EmptyStream(propertyStream);
@@ -1627,7 +1644,6 @@ namespace FunctionGenerator
             {
                 codeStream << "\nvoid";
             }
-
 
             size_t gctW = sFunctionName.find("GetCurrentTime");
             size_t goW = sFunctionName.find("GetObject");
