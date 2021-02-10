@@ -1,4 +1,4 @@
-# UE3SDKGenerator v2.0.5
+# UE3SDKGenerator v2.0.6
 Internal SDK generator for Unreal Engine 3 games.
 
 ### About
@@ -9,13 +9,14 @@ By default there is one Engine file, Rocket League, included. To create your own
 
 ### Completed SDK
 
-I made a video tutorial on how to do all the following below, if you don't feel like reading: https://www.youtube.com/watch?v=e2igcsT-Yc8
+As of version v2.0.6 the tutorial video for this project is slightly outdated, so keep that in mind!
+Tutorial video if you don't feel like reading: https://www.youtube.com/watch?v=e2igcsT-Yc8
 
 Once your SDK is complete you need to make a few changes to the generated files.
 
 If you're using virtual voids for process event `(UsingDetours = false)` you need to comment out "VfTableObject" from the UObject class.
 
-Also in your `Core_structs.h` file you need to delete the generated FPointer struct (as this is already defined in the generated GameDefines.h file), and you also need to swap the order of the includes in the SdkHeaders.h file. For example make sure the Core files are placed FIRST after GameDefines.h behind all the other includes like so:
+You also need to swap the order of the includes in theSdkHeaders.h file. For example make sure the Core files are placed FIRST after GameDefines.h behind all the other includes like so:
 
 ```cpp
 #include "GameDefines.h"
