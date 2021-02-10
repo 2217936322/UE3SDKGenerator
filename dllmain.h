@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <Psapi.h>
 #pragma comment(lib, "Psapi.lib")
@@ -20,10 +21,9 @@
 
 /*
 	TO-DO:
-	- Create seperate files for UE functions that aren't used by any classes
-	- More detailed log
-	- memcpy_s instead of memcpy
-	- Make it look less shit
+	- Double check all property sizes before writing them, there seems to be a mismatch sometimes and I can't figure out why.
+	- Figure out better method for GenerateVirtualFunctions.
+	- Add an option to use ProcessEventOffset to generate virtual functions.
 */
 
 namespace Utils
@@ -31,9 +31,9 @@ namespace Utils
 	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
 	uintptr_t FindPattern(HMODULE module, const unsigned char* pattern, const char* mask);
 	uintptr_t FindPattern(uintptr_t startAddres, uintptr_t fileSize, const unsigned char* pattern, const char* mask);
-	bool MapExists(std::multimap<std::string, std::string>& StrStrMm, std::string sKey, std::string sValue);
-	bool SortPropertyPair(std::pair<UProperty*, std::string> pPropertyA, std::pair<UProperty*, std::string> pPropertyB);
-	bool SortProperty(UProperty* pPropertyA, UProperty* pPropertyB);
+	bool MapExists(std::multimap<std::string, std::string>& map, std::string& key, std::string& value);
+	bool SortPropertyPair(std::pair<UProperty*, std::string> uPropertyA, std::pair<UProperty*, std::string> pPropertyB);
+	bool SortProperty(UProperty* uPropertyA, UProperty* pPropertyB);
 	bool IsBitField(EPropertyTypes propertyType);
 	bool IsBitField(uint32_t arrayDim);
 	bool AreGObjectsValid();
@@ -44,13 +44,13 @@ namespace Retrievers
 {
 	void GetAllPropertyFlags(std::ostringstream& stream, int propertyFlags);
 	void GetAllFunctionFlags(std::ostringstream& stream, int functionFlags);
-	EPropertyTypes GetPropertyType(UProperty* uProperty, std::string& sPropertyType, bool returnFunction);
+	EPropertyTypes GetPropertyType(UProperty* uProperty, std::string& uPropertyType, bool returnFunction);
 	size_t GetPropertySize(UProperty* uProperty);
 }
 
 namespace StructGenerator
 {
-	UScriptStruct* FindLargestStruct(std::string structFullName);
+	UScriptStruct* FindLargestStruct(std::string& structFullName);
 	void GenerateStruct(FILE* file, UScriptStruct* uScriptStruct);
 	void GenerateStructProperties(FILE* file, UScriptStruct* uScriptStruct, UObject* pPackageObj);
 	void ProcessStructs(FILE* file, UObject* uPackageObj);
@@ -83,7 +83,7 @@ namespace ParameterGenerator
 
 namespace FunctionGenerator
 {
-	void GenerateVirtualFunction(FILE* file, UClass* uClass);
+	void GenerateVirtualFunctions(FILE* file, UClass* uClass);
 	void GenerateFunctionCode(FILE* file,  UClass* uClass);
 	void GenerateFunctionDescription(FILE* file,  UClass* uClass);
 	void ProcessFunctions(FILE* file, UObject* uPackageObj);

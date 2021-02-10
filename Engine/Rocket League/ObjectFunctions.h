@@ -1,8 +1,4 @@
-//#ifdef _MSC_VER 
-//#define strncasecmp _strnicmp
-//#define strcasecmp _stricmp
-//#endif
-
+#pragma once
 #include "GameDefines.h"
 
 /*
@@ -11,128 +7,130 @@
 # ========================================================================================= #
 */
 
-TArray<UObject*>* UObject::GObjObjects()
+TArray<class UObject*>* UObject::GObjObjects()
 {
-	TArray<UObject*>* ObjectArray = (TArray<UObject*>*)GObjects;
-	return ObjectArray;
+	TArray<class UObject*>* objectArray = reinterpret_cast<TArray<class UObject*>*>(GObjects);
+	return objectArray;
 }
 
 char const* UObject::GetName()
 {
-	static char cOutBuffer[512];
-	memset(cOutBuffer, 0, sizeof cOutBuffer);
-	std::string name = this->Name.GetName();
-	sprintf_s(cOutBuffer, "%s", name.c_str());
+	static char charBuffer[512];
+	memset(charBuffer, 0, sizeof charBuffer);
+	std::string name = this->Name.ToString();
+	sprintf_s(charBuffer, "%s", name.c_str());
 
-	return cOutBuffer;
+	return charBuffer;
 }
 
 char const* UObject::GetNameCPP()
 {
-	static char cOutBuffer[512];
+	static char charBuffer[512];
 
 	if (this->IsA(UClass::StaticClass()))
 	{
-		UClass* pClass = (UClass*)this;
+		UClass* uClass = reinterpret_cast<UClass*>(this);
 
-		while (pClass)
+		while (uClass)
 		{
-			std::string pClassName = pClass->GetName();
+			std::string className = uClass->GetName();
 
-			if (pClassName == "Actor")
+			if (className == "Actor")
 			{
-				strcpy_s(cOutBuffer, "A");
+				strcpy_s(charBuffer, "A");
 				break;
 			}
-			else if (pClassName == "Object")
+			else if (className == "Object")
 			{
-				strcpy_s(cOutBuffer, "U");
+				strcpy_s(charBuffer, "U");
 				break;
 			}
 
-			pClass = (UClass*)pClass->SuperField;
+			uClass = reinterpret_cast<UClass*>(uClass->SuperField);
 		}
 	}
 	else
 	{
-		strcpy_s(cOutBuffer, "F");
+		strcpy_s(charBuffer, "F");
 	}
 
-	strcat_s(cOutBuffer, this->GetName());
+	strcat_s(charBuffer, this->GetName());
 
-	return cOutBuffer;
+	return charBuffer;
 }
 
 char const* UObject::GetFullName()
 {
 	if (this->Class && this->Outer)
 	{
-		static char cOutBuffer[1024];
-		char cTmpBuffer[1024];
-		strcpy_s(cOutBuffer, this->GetName());
+		static char charBuffer[1024];
+		char tempBuffer[1024];
+		strcpy_s(charBuffer, this->GetName());
 
-		for (UObject* pOuter = this->Outer; pOuter; pOuter = pOuter->Outer)
+		for (UObject* uOuter = this->Outer; uOuter; uOuter = uOuter->Outer)
 		{
-			strcpy_s(cTmpBuffer, pOuter->GetName());
-			strcat_s(cTmpBuffer, ".");
+			strcpy_s(tempBuffer, uOuter->GetName());
+			strcat_s(tempBuffer, ".");
 
-			size_t len1 = strlen(cTmpBuffer);
-			size_t len2 = strlen(cOutBuffer);
+			size_t len1 = strlen(tempBuffer);
+			size_t len2 = strlen(charBuffer);
 
-			memmove(cOutBuffer + len1, cOutBuffer, len1 + len2 + 1);
-			memcpy(cOutBuffer, cTmpBuffer, len1);
+			memmove(charBuffer + len1, charBuffer, len1 + len2 + 1);
+			memcpy(charBuffer, tempBuffer, len1);
 		}
 
-		strcpy_s(cTmpBuffer, this->Class->GetName());
-		strcat_s(cTmpBuffer, " ");
+		strcpy_s(tempBuffer, this->Class->GetName());
+		strcat_s(tempBuffer, " ");
 
-		size_t len1 = strlen(cTmpBuffer);
-		size_t len2 = strlen(cOutBuffer);
+		size_t len1 = strlen(tempBuffer);
+		size_t len2 = strlen(charBuffer);
 
-		memmove(cOutBuffer + len1, cOutBuffer, len1 + len2 + 1);
-		memcpy(cOutBuffer, cTmpBuffer, len1);
+		memmove(charBuffer + len1, charBuffer, len1 + len2 + 1);
+		memcpy(charBuffer, tempBuffer, len1);
 
-		return cOutBuffer;
+		return charBuffer;
 	}
 
-	return "(null)";
+	return "null";
 }
 
 char const* UObject::GetPackageName()
 {
-	UObject* pPackage = this->GetPackageObj();
+	UObject* uPackageObj = this->GetPackageObj();
 
-	if (pPackage)
+	if (uPackageObj)
 	{
-		static char cOutBuffer[512];
-		strcpy_s(cOutBuffer, pPackage->GetName());
-		return cOutBuffer;
+		static char charBuffer[512];
+		strcpy_s(charBuffer, uPackageObj->GetName());
+		return charBuffer;
 	}
 	
-	return "(null)";
+	return "null";
 }
 
 UObject* UObject::GetPackageObj()
 {
-	UObject* pPackage = nullptr;
+	UObject* uPackage = nullptr;
 
-	for (UObject* pOuter = this->Outer; pOuter; pOuter = pOuter->Outer)
-		pPackage = pOuter;
+	for (UObject* uOuter = this->Outer; uOuter; uOuter = uOuter->Outer)
+	{
+		uPackage = uOuter;
+	}
 
-	return pPackage;
+	return uPackage;
 }
 
 template<typename T> T* UObject::FindObject(char const* objectFullName)
 {
-	for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
+	for (UObject* uObject : *UObject::GObjObjects())
 	{
-		UObject* Object = UObject::GObjObjects()->Data[i];
-
-		if (!Object || !Object->IsA(T::StaticClass()))
-			continue;
-
-		if (Object->GetFullName() == objectFullName)
-			return (T*)Object;
+		if (uObject && uObject->IsA(T::StaticClass()))
+		{
+			if (uObject->GetFullName() == objectFullName)
+			{
+				return reinterpret_cast<T*>(uObject);
+			}
+		}
 	}
 
 	return nullptr;
@@ -140,69 +138,66 @@ template<typename T> T* UObject::FindObject(char const* objectFullName)
 
 template<typename T> static unsigned int UObject::CountObject(char const* objectName)
 {
-	static std::map<std::string, int> mCountCache;
-	std::string sObjectName = objectName;
+	static std::map<std::string, int> countCache;
 
-	if (mCountCache.find(sObjectName) == mCountCache.end())
+	if (countCache.find(objectName) == countCache.end())
 	{
-		mCountCache[sObjectName] = 0;
+		countCache[objectName] = 0;
 
-		for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
+		for (UObject* uObject : *UObject::GObjObjects())
 		{
-			UObject* pObject = UObject::GObjObjects()->Data[i];
-
-			if (!pObject || !pObject->IsA(T::StaticClass()))
-				continue;
-
-			if (pObject->GetName() == objectName)
-				mCountCache[std::string(pObject->GetName())]++;
+			if (uObject && uObject->IsA(T::StaticClass()))
+			{
+				if (uObject->GetName() == objectName)
+				{
+					countCache[std::string(uObject->GetName())]++;
+				}
+			}
 		}
 	}
 
-	return mCountCache[sObjectName];
+	return countCache[objectName];
 }
 
 UClass* UObject::FindClass(char const* classFullName)
 {
-	while (!UObject::GObjObjects())
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-	while (!FName::Names())
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
 	static bool initialized = false;
-	static std::map<std::string, UClass*> loadedClasses{};
+	static std::map<std::string, UClass*> foundClasses{};
 
 	if (!initialized)
 	{
-		for (int i = 0; i < UObject::GObjObjects()->Num(); i++)
+		for (UObject* uObject : *UObject::GObjObjects())
 		{
-			UObject* object = UObject::GObjObjects()->Data[i];
-
-			if (object)
+			if (uObject)
 			{
-				std::string objectFullName = object->GetFullName();
+				std::string objectFullName = uObject->GetFullName();
 
-				if (objectFullName.find("Class") != std::string::npos)
-					loadedClasses[objectFullName] = (UClass*)object;
+				if (objectFullName.find("Class") == 0)
+				{
+					foundClasses[objectFullName] = reinterpret_cast<UClass*>(uObject);
+				}
 			}
 		}
 
 		initialized = true;
 	}
 
-	if (loadedClasses.find(classFullName) != loadedClasses.end())
-		return loadedClasses[classFullName];
+	if (foundClasses.find(classFullName) != foundClasses.end())
+	{
+		return foundClasses[classFullName];
+	}
 
 	return nullptr;
 }
 
-bool UObject::IsA(UClass* pClass)
+bool UObject::IsA(UClass* uClass)
 {
-	for (UClass* SuperClass = this->Class; SuperClass; SuperClass = (UClass*)SuperClass->SuperField)
+	for (UClass* uSuperClass = this->Class; uSuperClass; uSuperClass = reinterpret_cast<UClass*>(uSuperClass->SuperField))
 	{
-		if (SuperClass == pClass)
+		if (uSuperClass == uClass)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -210,10 +205,43 @@ bool UObject::IsA(UClass* pClass)
 
 bool UObject::IsA(int objInternalInteger)
 {
-	UClass* pClass = UObject::GObjObjects()->Data[objInternalInteger]->Class;
+	UClass* uClass = UObject::GObjObjects()->At(objInternalInteger)->Class;
 
-	if (pClass)
-		return this->IsA(pClass);
+	if (uClass)
+	{
+		return this->IsA(uClass);
+	}
 
 	return false;
+}
+
+UFunction* UFunction::FindFunction(char const* functionFullName)
+{
+	static bool initialized = false;
+	static std::map<std::string, UFunction*> foundFunctions{};
+
+	if (!initialized)
+	{
+		for (UObject* uObject : *UObject::GObjObjects())
+		{
+			if (uObject)
+			{
+				std::string objectFullName = uObject->GetFullName();
+
+				if (objectFullName.find("Function") == 0)
+				{
+					foundFunctions[objectFullName] = reinterpret_cast<UFunction*>(uObject);
+				}
+			}
+		}
+
+		initialized = true;
+	}
+
+	if (foundFunctions.find(functionFullName) != foundFunctions.end())
+	{
+		return foundFunctions[functionFullName];
+	}
+
+	return nullptr;
 }

@@ -117,7 +117,7 @@ enum class EPropertyTypes : uint32_t
 	TYPE_Int = 4,
 	TYPE_Float = 5,
 	TYPE_Bool = 6,
-	TYPE_Pointer = 7,
+	TYPE_ObjectPointer = 7,
 	TYPE_FPointer = 8,
 	TYPE_FString = 9,
 	TYPE_FName = 10,
@@ -138,45 +138,227 @@ enum class EWidthTypes : uint32_t
 	WIDTH_PropertyFlags = 16
 };
 
-template<typename T> struct TArray
+template<typename TArray>
+struct TIterator
 {
 public:
-	T* Data;
-	int32_t Count;
-	int32_t Max;
+	using ElementType = typename TArray::ElementType;
+	using ElementPointer = ElementType*;
+	using ElementReference = ElementType&;
+	using ElementConstReference = const ElementType&;
+
+private:
+	ElementPointer IteratorData;
+
+public:
+	TIterator(ElementPointer inElementPointer)
+	{
+		IteratorData = inElementPointer;
+	}
+
+public:
+	TIterator& operator++()
+	{
+		IteratorData++;
+		return *this;
+	}
+
+	TIterator operator++(int)
+	{
+		TIterator iteratorCopy = *this;
+		++(*this);
+		return iteratorCopy;
+	}
+
+	TIterator& operator--()
+	{
+		IteratorData--;
+		return *this;
+	}
+
+	TIterator operator--(int)
+	{
+		TIterator iteratorCopy = *this;
+		--(*this);
+		return iteratorCopy;
+	}
+
+	ElementReference operator[](int32_t index)
+	{
+		return *(IteratorData[index]);
+	}
+
+	ElementPointer operator->()
+	{
+		return IteratorData;
+	}
+
+	ElementReference operator*()
+	{
+		return *IteratorData;
+	}
+
+	bool operator==(const TIterator& other) const
+	{
+		return (IteratorData == other.IteratorData);
+	}
+
+	bool operator!=(const TIterator& other) const
+	{
+		return !(*this == other);
+	}
+};
+
+template<typename InElementType>
+struct TArray
+{
+public:
+	using ElementType = InElementType;
+	using ElementPointer = ElementType*;
+	using ElementReference = ElementType&;
+	using ElementConstReference = const ElementType&;
+	using Iterator = TIterator<TArray<ElementType>>;
+
+private:
+	ElementPointer ArrayData;
+	int32_t ArrayCount;
+	int32_t ArrayMax;
+
 public:
 	TArray()
 	{
-		Data = nullptr;
-		Count = Max = 0;
+		ArrayData = nullptr;
+		ArrayCount = 0;
+		ArrayMax = 0;
+
+		//ReAllocate(sizeof(ElementType));
 	}
+
+	~TArray()
+	{
+		//Clear();
+		//::operator delete(ArrayData, ArrayMax * sizeof(ElementType));
+	}
+
 public:
-	T& operator[](int index)
+	ElementConstReference operator[](int32_t index) const
 	{
-		return Data[index];
+		if (index <= ArrayCount)
+		{
+			return ArrayData[index];
+		}
 	}
 
-	const T& operator[](int index) const
+	ElementReference operator[](int32_t index)
 	{
-		return Data[index];
+		if (index <= ArrayCount)
+		{
+			return ArrayData[index];
+		} 
 	}
 
-	void Add(T data)
+	ElementConstReference At(const int32_t index) const
 	{
-		Data = (T*)realloc(Data, sizeof(T) * (Count + 1));
-		Data[Count++] = data;
-		Max = Count;
+		if (index <= ArrayCount)
+		{
+			return ArrayData[index];
+		} 
+	}
+
+	ElementReference At(const int32_t index)
+	{
+		if (index <= ArrayCount)
+		{
+			return ArrayData[index];
+		} 
+	}
+
+	void Add(ElementConstReference newElement)
+	{
+		if (ArrayCount >= ArrayMax)
+		{
+			ReAllocate(sizeof(ElementType) * (ArrayCount + 1));
+		}
+
+		new(&ArrayData[ArrayCount]) ElementType(newElement);
+		ArrayCount++;
+	}
+
+	void Add(ElementReference& newElement)
+	{
+		if (ArrayCount >= ArrayMax)
+		{
+			ReAllocate(sizeof(ElementType) * (ArrayCount + 1));
+		}
+
+		new(&ArrayData[ArrayCount]) ElementType(newElement);
+		ArrayCount++;
+	}
+
+	void PopBack()
+	{
+		if (ArrayCount > 0)
+		{
+			ArrayCount--;
+			ArrayData[ArrayCount].~ElementType();
+		}
 	}
 
 	void Clear()
 	{
-		free(Data);
-		Count = Max = 0;
+		for (int32_t i = 0; i < ArrayCount; i++)
+		{
+			ArrayData[i].~ElementType();
+		}
+
+		ArrayCount = 0;
 	}
 
-	int Num()
+	int32_t Num() const
 	{
-		return Count;
+		return ArrayCount;
+	}
+
+	int32_t Max() const
+	{
+		return ArrayMax;
+	}
+
+	Iterator begin()
+	{
+		return Iterator(ArrayData);
+	}
+
+	Iterator end()
+	{
+		return Iterator(ArrayData + ArrayCount);
+	}
+
+private:
+	void ReAllocate(int32_t newArrayMax)
+	{
+		ElementPointer newArrayData = (ElementPointer)::operator new(newArrayMax * sizeof(ElementType));
+
+		int32_t newNum = ArrayCount;
+
+		if (newArrayMax < newNum)
+		{
+			newNum = newArrayMax;
+		}
+
+		for (int32_t i = 0; i < newNum; i++)
+		{
+			new(newArrayData + i) ElementType(std::move(ArrayData[i]));
+		}
+
+		for (int32_t i = 0; i < ArrayCount; i++)
+		{
+			ArrayData[i].~ElementType();
+		}
+
+		::operator delete(ArrayData, ArrayMax * sizeof(ElementType));
+		ArrayData = newArrayData;
+		ArrayMax = newArrayMax;
 	}
 };
 
@@ -204,43 +386,37 @@ struct FNameEntry
 struct FName
 {
 public:
-	int32_t		Index;
-	int32_t		Number;
+	using ElementType = const wchar_t;
+	using ElementPointer = ElementType*;
+
+private:
+	int32_t	FNameEntryId;
+	int32_t	InstanceNumber;
+
 public:
 	FName()
 	{
-		Index = Number = 0;
+		FNameEntryId = 0;
+		InstanceNumber = 0;
 	}
 
 	FName(int i)
 	{
-		Index = i;
-		Number = 0;
+		FNameEntryId = i;
+		InstanceNumber = 0;
 	}
 
-	~FName() {};
-public:
-	bool operator == (const FName& name) const
-	{
-		return (Index == name.Index);
-	}
-
-	static TArray<FNameEntry*>* Names()
-	{
-		TArray<FNameEntry*>* GNamesArray = (TArray<FNameEntry*>*)GNames;
-		return GNamesArray;
-	}
-
-	FName(const wchar_t* findName)
+	FName(ElementPointer findName)
 	{
 		static TArray<int> nameCache;
-		for (int i = 0; i < nameCache.Num(); i++)
+
+		for (int entry : nameCache)
 		{
-			if (Names()->Data[i])
+			if (Names()->At(entry))
 			{
-				if (!wcscmp(Names()->Data[nameCache[i]]->Name, findName))
+				if (!wcscmp(Names()->At(nameCache[entry])->Name, findName))
 				{
-					Index = nameCache[i];
+					FNameEntryId = nameCache[entry];
 					return;
 				}
 			}
@@ -248,73 +424,164 @@ public:
 
 		for (int i = 0; i < Names()->Num(); i++)
 		{
-			if (Names()->Data[i])
+			if (Names()->At(i))
 			{
-				if (!wcscmp(Names()->Data[i]->Name, findName))
+				if (!wcscmp(Names()->At(i)->Name, findName))
 				{
 					nameCache.Add(i);
-					Index = i;
+					FNameEntryId = i;
 				}
 			}
 		}
 	}
 
-	std::string GetName()
+	~FName() {}
+
+public:
+	static TArray<FNameEntry*>* Names()
 	{
-		if (Index < 0 || Index > Names()->Num())
+		TArray<struct FNameEntry*>* GNamesArray = reinterpret_cast<TArray<struct FNameEntry*>*>(GNames);
+		return GNamesArray;
+	}
+
+	int32_t GetDisplayIndex() const
+	{
+		return FNameEntryId;
+	}
+
+	const FNameEntry GetDisplayNameEntry() const
+	{
+		if (IsValid())
 		{
-			return std::string("UnknownName");
+			return *Names()->At(FNameEntryId);
 		}
-		else
+	}
+
+	FNameEntry* GetEntry()
+	{
+		if (IsValid())
 		{
-			std::wstring ws(Names()->Data[Index]->Name);
+			return Names()->At(FNameEntryId);
+		}
+	}
+
+	int32_t GetNumber() const
+	{
+		return InstanceNumber;
+	}
+
+	void SetNumber(int32_t newNumber)
+	{
+		InstanceNumber = newNumber;
+	}
+
+	std::string ToString() const
+	{
+		if (IsValid())
+		{
+			std::wstring ws(GetDisplayNameEntry().Name);
 			std::string str(ws.begin(), ws.end());
 			return str;
 		}
+
+		return std::string("UnknownName");
+	}
+
+	bool IsValid() const
+	{
+		if (FNameEntryId > Names()->Num() || !Names()->At(FNameEntryId))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	FName operator=(const FName& other)
+	{
+		FNameEntryId = other.FNameEntryId;
+		InstanceNumber = other.InstanceNumber;
+		return *this;
+	}
+
+	bool operator==(const FName& name) const
+	{
+		return (FNameEntryId == name.FNameEntryId);
 	}
 };
 
-struct FString : public TArray<const wchar_t>
+struct FString
 {
 public:
-	FString() {};
+	using ElementType = const wchar_t;
+	using ElementPointer = ElementType*;
 
-	~FString() {};
+private:
+	ElementPointer ArrayData;
+	int32_t ArrayCount;
+	int32_t ArrayMax;
+
 public:
-	FString(const wchar_t* other)
+	FString()
 	{
-		this->Max = this->Count = *other ? (wcslen(other) + 1) : 0;
-
-		if (this->Count)
-			this->Data = other;
+		ArrayData = nullptr;
+		ArrayCount = 0;
+		ArrayMax = 0;
 	}
 
-	FString operator = (const wchar_t* other)
+	FString(ElementPointer other)
 	{
-		if (this->Data != other)
-		{
-			this->Max = this->Count = *other ? (wcslen(other) + 1) : 0;
+		ArrayData = nullptr;
+		ArrayCount = 0;
+		ArrayMax = 0;
 
-			if (this->Count)
-				this->Data = other;
+		ArrayMax = ArrayCount = *other ? (wcslen(other) + 1) : 0;
+
+		if (ArrayCount > 0)
+		{
+			ArrayData = other;
+		}
+	}
+
+	~FString() {}
+
+public:
+	std::string ToString() const
+	{
+		if (!IsValid())
+		{
+			std::wstring wideStr(ArrayData);
+			std::string str(wideStr.begin(), wideStr.end());
+			return str;
+		}
+
+		return "null";
+	}
+
+	bool IsValid() const
+	{
+		return !ArrayData;
+	}
+
+	FString operator=(ElementPointer other)
+	{
+		if (ArrayData != other)
+		{
+			ArrayMax = ArrayCount = *other ? (wcslen(other) + 1) : 0;
+
+			if (ArrayCount > 0)
+			{
+				ArrayData = other;
+			}
 		}
 
 		return *this;
 	}
 
-	std::string ToString() const
+	bool operator==(const FString& other)
 	{
-		if (this->Data)
-		{
-			std::wstring ws(this->Data);
-			std::string str(ws.begin(), ws.end());
-			return str;
-		}
-		else
-		{
-			return std::string("null");
-		}
-	};
+		return (!wcscmp(ArrayData, other.ArrayData));
+	}
 };
 
 struct FScriptDelegate
@@ -360,15 +627,17 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Object");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Object");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 
-	static TArray<UObject*>* GObjObjects();
+	static TArray<class UObject*>* GObjObjects();
 
 	char const* GetName();
 	char const* GetNameCPP();
@@ -394,12 +663,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Field");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Field");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -412,12 +683,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Enum");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Enum");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -430,12 +703,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Const");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Const");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -455,12 +730,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Property");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Property");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -477,12 +754,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Struct");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Struct");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -503,13 +782,17 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Function");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Function");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
+
+	static UFunction* FindFunction(char const* functionFullName);
 };
 
 // Class Core.ScriptStruct
@@ -521,12 +804,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ScriptStruct");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ScriptStruct");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -539,12 +824,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.State");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.State");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -557,12 +844,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.Class");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.Class");
+		}
 		
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -581,12 +870,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.StructProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.StructProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -598,12 +889,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.StrProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.StrProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -615,12 +908,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.QWordProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.QWordProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -634,12 +929,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ComponentProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ComponentProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -653,12 +950,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ObjectProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ObjectProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -671,12 +970,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ClassProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ClassProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -688,12 +989,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.NameProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.NameProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -707,12 +1010,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.MapProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.MapProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -724,12 +1029,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.IntProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.IntProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -742,12 +1049,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.InterfaceProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.InterfaceProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -759,12 +1068,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.FloatProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.FloatProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -777,12 +1088,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.DelegateProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.DelegateProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -795,12 +1108,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ByteProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ByteProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -809,16 +1124,18 @@ public:
 class UBoolProperty : public UProperty
 {
 public:
-	unsigned long		BitMask;							// 0x00C8 (0x08)
+	unsigned long       BitMask;							// 0x00C8 (0x08)
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.BoolProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.BoolProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 
@@ -831,12 +1148,14 @@ public:
 public:
 	static UClass* StaticClass()
 	{
-		static UClass* pClassPointer = nullptr;
+		static UClass* uClassPointer = nullptr;
 
-		if (!pClassPointer)
-			pClassPointer = UObject::FindClass("Class Core.ArrayProperty");
+		if (!uClassPointer)
+		{
+			uClassPointer = UObject::FindClass("Class Core.ArrayProperty");
+		}
 
-		return pClassPointer;
+		return uClassPointer;
 	};
 };
 

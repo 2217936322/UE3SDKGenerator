@@ -19,15 +19,18 @@ namespace Configuration
 	extern int ClassSpacer;
 	extern const unsigned char Alignment;
 
-	//extern int ProcessEventIndex;
+	extern int ProcessEventIndex;
+	extern std::string ProcessEventString;
 	extern const unsigned char* ProcessEventPattern;
 	extern const char* ProcessEventMask;
 	//extern uintptr_t ProcessEventOffset;
 
+	extern std::string GObjectsString;
 	extern const unsigned char* GObjectsPattern;
 	extern const char* GObjectsMask;
 	extern uintptr_t GObjectsOffset;
 
+	extern std::string GNamesString;
 	extern const unsigned char* GNamesPattern;
 	extern const char* GNamesMask;
 	extern uintptr_t GNamesOffset;
