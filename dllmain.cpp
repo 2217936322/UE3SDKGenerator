@@ -1131,6 +1131,16 @@ namespace ClassGenerator
             {
                 UProperty* uProperty = vProperty[i];
 
+                std::string propertyName = Generator::GenerateValidName(std::string(uProperty->GetName()));
+
+                if (uClass == UObject::FindClass("Class Core.Object"))
+                {
+                    if (!Configuration::UsingDetours && propertyName.find("VfTable") != std::string::npos)
+                    {
+                        continue;
+                    }
+                }
+
                 if (lastOffset < uProperty->Offset)
                 {
                     missedOffset = uProperty->Offset - lastOffset;
@@ -1164,7 +1174,6 @@ namespace ClassGenerator
                 if (Retrievers::GetPropertyType(uProperty, uPropertyType, false) != EPropertyTypes::TYPE_UnknownData)
                 {
                     size_t correctElementSize = Retrievers::GetPropertySize(uProperty);
-                    std::string propertyName = Generator::GenerateValidName(std::string(uProperty->GetName()));
 
                     if (propertyNameMap.count(propertyName) == 0)
                     {
@@ -1937,9 +1946,6 @@ namespace FunctionGenerator
                     codeStream << ", &" << uProperty.second << ", ";
                     Printers::MakeHex(codeStream, (uProperty.first->ElementSize * uProperty.first->ArrayDim), static_cast<uint32_t>(EWidthTypes::WIDTH_SpecialCase));
                     codeStream << ");\n";
-                    //codeStream << "\tmemcpy(&" << functionName << "_Parms." << uProperty.second << ", &" << uProperty.second << ", ";
-                    //Printers::MakeHex(codeStream, (uProperty.first->ElementSize * uProperty.first->ArrayDim), static_cast<uint32_t>(EWidthTypes::WIDTH_SpecialCase));
-                    //codeStream << ");\n";
                 }
                 else if (propertyTypeResult != EPropertyTypes::TYPE_UnknownData && propertyTypeResult < EPropertyTypes::TYPE_FPointer)
                 {
@@ -1988,9 +1994,6 @@ namespace FunctionGenerator
                         codeStream << ", &" << uProperty.second << ", ";
                         Printers::MakeHex(codeStream, (uProperty.first->ElementSize * uProperty.first->ArrayDim), static_cast<uint32_t>(EWidthTypes::WIDTH_SpecialCase));
                         codeStream << ");\n";
-                        //codeStream << "\tmemcpy(&" << uProperty.second << ", &" << functionName << "_Parms." << uProperty.second << ", ";
-                        //Printers::MakeHex(codeStream, (uProperty.first->ElementSize * uProperty.first->ArrayDim), static_cast<uint32_t>(EWidthTypes::WIDTH_SpecialCase));
-                        //codeStream << ");\n";
                     }
                     else if (propertyTypeResult != EPropertyTypes::TYPE_UnknownData && propertyTypeResult < EPropertyTypes::TYPE_FPointer)
                     {
@@ -2578,7 +2581,7 @@ namespace Generator
     {
         Initialize(nullptr);
 
-        uintptr_t baseAddress = reinterpret_cast<uintptr_t>(GetModuleHandleA("RocketLeague.exe"));
+        uintptr_t baseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
 
         char charBuffer[512] = { NULL };
 
