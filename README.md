@@ -37,7 +37,7 @@ By default there is one Engine file, Rocket League, included. To create your own
 
 There is a [video tutorial](https://www.youtube.com/watch?v=e2igcsT-Yc8) for this project, but as of version 2.0.6 it is slightly outdated so keep that in mind.
 
-Once your sdk has been generated, you need to make a few minor changes to it. Depending on the game the header files in `SdkHeaders.h` could be placed out of order, if they are make sure to swap it out in the order of `Core` first, then `Engine`; here is an example:
+Once your sdk has been generated you might need to make a minor change to it. Depending on the game the header files in `SdkHeaders.h` could be placed out of order, if they are make sure to swap it out in the order of `Core` first, then `Engine`; here is an example:
 
 ```cpp
 #include "GameDefines.h"
@@ -48,8 +48,6 @@ Once your sdk has been generated, you need to make a few minor changes to it. De
 #include "SDK_HEADERS\Engine_classes.h"
 #include "SDK_HEADERS\Engine_parameters.h"
 ```
-
-Also if you're using virtual voids for process event `(UsingDetours = false)` you need to comment out "VfTableObject" from the UObject class.
 
 Here is an example of what a generated sdk looks like.
 
