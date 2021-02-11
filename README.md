@@ -29,7 +29,7 @@ Have the option to generate normal enums or enum classes.
 - **Custom spacer widths**
 Customize the spacing for comments, constants, structs, enums, functions, classes, and even the log file.
 
-#### Requirements
+### Requirements
 
 - ISO C++17 Standard.
 - Visual Studio or another Windows based compiler (For Windows header files, along with the PSAPI library).
