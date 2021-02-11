@@ -23,8 +23,16 @@ Have the option of using virtual voids for Process Event, or just use an index n
 - **Custom class alignment**
 Full support for both x32 bit and x64 bit games, just change the `Alignment` value in `Configuration.cpp`.
 
+- **Enum classes**
+Have the option to generate normal enums or enum classes.
+
 - **Custom spacer widths**
 Customize the spacing for comments, constants, structs, enums, functions, classes, and even the log file.
+
+#### Requirements
+
+- ISO C++17 Standard.
+- Visual Studio or another Windows based compiler (For Windows header files, along with the PSAPI library).
 
 ### Configuration
 
