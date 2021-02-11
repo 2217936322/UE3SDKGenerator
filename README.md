@@ -21,6 +21,9 @@ Have the option to use constant variables for classes and functions instead of F
 - Process Event options
 Have the option of using virtual voids for Process Event, or just use an index number for UObject's VfTable instead.
 
+- Custom class alignment
+Full support for both x32 bit and x64 bit games, just change the `Alignment` value in `Configuration.cpp`.
+
 - Custom spacer widths
 Customize the spacing for comments, constants, structs, enums, functions, classes, and even the log file.
 
@@ -28,7 +31,7 @@ Customize the spacing for comments, constants, structs, enums, functions, classe
 
 To get started in generating an sdk, copy  and paste the `Rocket League` folder included in the Engine folder and rename it to the game you would like to use. The `GameDefines.h` file will need to be reversed by hand for each game that you want to use. Once you have the necessary classes filled out all that's left to do is make the desired changes in the `Configuration.cpp` file and make sure you have the right `Engine` files included for your game in `dllmain.h`. When you inject compiled dll into your game you will be prompted with a message saying that sdk generation has started, do not close your game until you recieve another message confirming generation is completed.
 
-By default there is one Engine file, Rocket League, included. To create your own just copy the folder and paste it in the Engine folder and modify the #includes in `dllmain.h` as needed. The `GameDefines.h` file is game specific and will need to be changed acordingly. After that you can make your own changes to `Configuration.cpp` and you're ready to generate an SDK!
+By default there is one Engine file, Rocket League, included. To create your own just copy the folder and paste it in the Engine folder and modify the #includes in `dllmain.h` as needed. The `GameDefines.h` file is game specific and will need to be changed acordingly. After that you can make your own changes to `Configuration.cpp` and after that you're ready to generate an sdk! Just compile as
 
 ### Finalization
 
