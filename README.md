@@ -9,7 +9,7 @@ This project is not fully complete yet, if you encounter any bugs please create 
 ### Features
 
 - **Accessibility**
-Generated sdk is plug and play, just `#include "SdkHeaders.h"` in your project, initialize globals, and you're ready for modding.
+Generated sdk is plug and play, just `#include "SdkHeaders.h"` in your project, initialize globals, and you're ready to go.
 
 - **Global offsets**
 Generate an sdk using either offsets or patterns for GObjects and GNames.
