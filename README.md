@@ -8,28 +8,22 @@ This project is not fully complete yet, if you encounter any bugs please create 
 
 ### Features
 
-- Accessibility
-
+- **Accessibility**
 Generated sdk is plug and play, just `#include "SdkHeaders.h"` in your project, initialize globals, and you're ready for modding.
 
-- Global offsets
-
+- **Global offsets**
 Generate an sdk using either offsets or patterns for GObjects and GNames.
 
-- Constant variables
-
+- **Constant variables**
 Have the option to use constant variables for classes and functions instead of FindClass/FindObject.
 
-- Process Event options
-
+- **Process Event options**
 Have the option of using virtual voids for Process Event, or just use an index number for UObject's VfTable instead.
 
-- Custom class alignment
-
+- **Custom class alignment**
 Full support for both x32 bit and x64 bit games, just change the `Alignment` value in `Configuration.cpp`.
 
-- Custom spacer widths
-
+- **Custom spacer widths**
 Customize the spacing for comments, constants, structs, enums, functions, classes, and even the log file.
 
 ### Configuration
