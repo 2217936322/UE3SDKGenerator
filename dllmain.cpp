@@ -26,46 +26,48 @@ namespace Utils
         size_t length = info.SizeOfImage;
 
         size_t pos = 0;
-        auto maskLength = std::strlen(mask) - 1;
-        auto startAdress = start;
-        for (uintptr_t it = startAdress; it < startAdress + length; it++)
+        size_t maskLength = std::strlen(mask) - 1;
+
+        for (uintptr_t retAddress = start; retAddress < start + length; retAddress++)
         {
-            if (*reinterpret_cast<unsigned char*>(it) == pattern[pos] || mask[pos] == '?')
+            if (*reinterpret_cast<unsigned char*>(retAddress) == pattern[pos] || mask[pos] == '?')
             {
                 if (pos == maskLength)
                 {
-                    return it - maskLength;
+                    return (retAddress - maskLength);
                 }
+
                 pos++;
             }
             else
             {
-                it -= pos;
+                retAddress -= pos;
                 pos = 0;
             }
         }
 
-        return -1;
+        return NULL;
     }
 
     uintptr_t FindPattern(uintptr_t startAddres, uintptr_t fileSize, const unsigned char* pattern, const char* mask)
     {
         size_t pos = 0;
-        int searchLen = strlen(mask) - 1;
+        size_t maskLength = std::strlen(mask) - 1;
 
         for (uintptr_t retAddress = startAddres; retAddress < startAddres + fileSize; retAddress++)
         {
             if (*reinterpret_cast<unsigned char*>(retAddress) == pattern[pos] || mask[pos] == '?')
             {
-                if (mask[pos + 1] == '\0')
+                if (pos == maskLength)
                 {
-                    return (retAddress - searchLen);
+                    return (retAddress - maskLength);
                 }
 
                 pos++;
             }
             else
             {
+                retAddress -= pos;
                 pos = 0;
             }
         }
@@ -1354,7 +1356,7 @@ namespace ClassGenerator
             }
             else
             {
-                FunctionGenerator::GenerateVirtualFunctions(file, uClass);
+                FunctionGenerator::GenerateVirtualFunctions(file);
             }
         }
         else if (uClass == UObject::FindClass("Class Core.Function"))
@@ -1643,35 +1645,43 @@ namespace ParameterGenerator
 
 namespace FunctionGenerator
 {
-    void GenerateVirtualFunctions(FILE* file, UClass* uClass)
+    void GenerateVirtualFunctions(FILE* file)
     {
         std::ostringstream functionStream;
 
+        uintptr_t vfTable = UObject::StaticClass()->VfTableObject.Dummy;
+        uintptr_t processEvent = Utils::FindPattern(GetModuleHandle(NULL), Configuration::ProcessEventPattern, Configuration::ProcessEventMask);
+
         functionStream << "\n\t// Virtual Functions\n";
 
-        uintptr_t VfTable = uClass->VfTableObject.Dummy;
-
-        for (uintptr_t i = 0x0; i < 0x400; i += Configuration::Alignment)
+        if (processEvent != 0x0)
         {
-            if (Utils::FindPattern(*(uintptr_t*)(VfTable + i), 0x200, Configuration::ProcessEventPattern, Configuration::ProcessEventMask))
+            for (int index = 0; index < 256; index++)
             {
-                functionStream << "\tvirtual void ProcessEvent(class UFunction* uFunction, void* uParms, void* uResult = nullptr);\t\t\t\t// ";
-                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), Configuration::Alignment);
-                functionStream << " (";
-                Printers::MakeHex(functionStream, i, 2);
-                functionStream << ")\n";
-                break;
+                uintptr_t virtualFunction = reinterpret_cast<uintptr_t*>(UObject::StaticClass()->VfTableObject.Dummy)[index];
+
+                if (virtualFunction == processEvent)
+                {
+                    functionStream << "\tvirtual void ProcessEvent(class UFunction* uFunction, void* uParms, void* uResult = nullptr);\t\t\t\t// ";
+                    Printers::MakeHex(functionStream, virtualFunction, Configuration::Alignment);
+                    functionStream << " (";
+                    Printers::MakeHex(functionStream, index, 2);
+                    functionStream << ")\n";
+                    break;
+                }
+                else
+                {
+                    functionStream << "\tvirtual void VirtualFunction" << std::to_string(index) << "();\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t// ";
+                    Printers::MakeHex(functionStream, virtualFunction, Configuration::Alignment);
+                    functionStream << " (";
+                    Printers::MakeHex(functionStream, index, static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
+                    functionStream << ")\n";
+                }
             }
-            else
-            {
-                functionStream << "\tvirtual void VirtualFunction";
-                Printers::MakeDecimal(functionStream, (i / Configuration::Alignment), static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
-                functionStream << " ();\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t// ";
-                Printers::MakeHex(functionStream, (*(uintptr_t*)(VfTable + i)), Configuration::Alignment);
-                functionStream << " (";
-                Printers::MakeHex(functionStream, i, static_cast<uint32_t>(EWidthTypes::WIDTH_Decimal));
-                functionStream << ")\n";
-            }
+        }
+        else
+        {
+            functionStream << "\n\t// COULD NOT FIND PROCESS EVENT, FIX PATTERN";
         }
 
         Printers::Print(file, functionStream);

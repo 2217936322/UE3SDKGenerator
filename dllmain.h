@@ -83,7 +83,7 @@ namespace ParameterGenerator
 
 namespace FunctionGenerator
 {
-	void GenerateVirtualFunctions(FILE* file, UClass* uClass);
+	void GenerateVirtualFunctions(FILE* file);
 	void GenerateFunctionCode(FILE* file,  UClass* uClass);
 	void GenerateFunctionDescription(FILE* file,  UClass* uClass);
 	void ProcessFunctions(FILE* file, UObject* uPackageObj);
@@ -99,6 +99,7 @@ namespace Generator
 	std::string GenerateUniqueName(UClass* uClass);
 	std::string GenerateUniqueName(UFunction* uFunction, UClass* uClass);
 	std::string GenerateIndexName(UObject* uObject, bool pushBack);
+
 	void GenerateConstants();
 	void GenerateHeaders();
 	void GenerateDefines();
