@@ -1,22 +1,40 @@
+
 # UE3SDKGenerator v2.0.6
-Internal SDK generator for Unreal Engine 3 games.
 
 ### About
-UE3SDKGenerator is a modern remake of TheFeckless's UE3 SDK Generator. It includes options such as using constant variables, address offsets, enum classes, VfTable for process event or use virtual functions, and more. This generator is not fully complete in terms of being "100% user friendly", but the generation part of it is completed. See usage for more information.
 
-### Usage
+A  modern C++17 remake of TheFeckless's UE3 SDK Generator.
+
+This project is not fully complete yet, if you encounter any bugs please create a new issue [here](https://github.com/ItsBranK/UE3SDKGenerator/issues).
+
+### Features
+
+- Accessibility
+Generated sdk is plug and play, just `#include "SdkHeaders.h"` in your project, initialize globals, and you're ready for modding.
+
+- Global offsets
+Generate an sdk using either offsets or patterns for GObjects and GNames.
+
+- Constant variables
+Have the option to use constant variables for classes and functions instead of FindClass/FindObject.
+
+- Process Event options
+Have the option of using virtual voids for Process Event, or just use an index number for UObject's VfTable instead.
+
+- Custom spacer widths
+Customize the spacing for comments, constants, structs, enums, functions, classes, and even the log file.
+
+### Configuration
+
+To get started in generating an sdk, copy  and paste the `Rocket League` folder included in the Engine folder and rename it to the game you would like to use. The `GameDefines.h` file will need to be reversed by hand for each game that you want to use. Once you have the necessary classes filled out all that's left to do is make the desired changes in the `Configuration.cpp` file and make sure you have the right `Engine` files included for your game in `dllmain.h`. When you inject compiled dll into your game you will be prompted with a message saying that sdk generation has started, do not close your game until you recieve another message confirming generation is completed.
+
 By default there is one Engine file, Rocket League, included. To create your own just copy the folder and paste it in the Engine folder and modify the #includes in `dllmain.h` as needed. The `GameDefines.h` file is game specific and will need to be changed acordingly. After that you can make your own changes to `Configuration.cpp` and you're ready to generate an SDK!
 
-### Completed SDK
+### Finalization
 
-As of version v2.0.6 the tutorial video for this project is slightly outdated, so keep that in mind!
-Tutorial video if you don't feel like reading: https://www.youtube.com/watch?v=e2igcsT-Yc8
+There is a [video tutorial](https://www.youtube.com/watch?v=e2igcsT-Yc8) for this project, but as of version 2.0.6 it is slightly outdated so keep that in mind.
 
-Once your SDK is complete you need to make a few changes to the generated files.
-
-If you're using virtual voids for process event `(UsingDetours = false)` you need to comment out "VfTableObject" from the UObject class.
-
-You also need to swap the order of the includes in theSdkHeaders.h file. For example make sure the Core files are placed FIRST after GameDefines.h behind all the other includes like so:
+Once your sdk has been generated, you need to make a few minor changes to it. Depending on the game the header files in `SdkHeaders.h` could be placed out of order, if they are make sure to swap it out in the order of `Core` first, then `Engine`; here is an example:
 
 ```cpp
 #include "GameDefines.h"
@@ -28,9 +46,9 @@ You also need to swap the order of the includes in theSdkHeaders.h file. For exa
 #include "SDK_HEADERS\Engine_parameters.h"
 ```
 
-To use your newly generated SDK in your own DLL all you have to do is include SdkHeaders.h and initialize the GObject and GName pointers that are located in the generated GameDefines.h file.
+Also if you're using virtual voids for process event `(UsingDetours = false)` you need to comment out "VfTableObject" from the UObject class.
 
-Here is an example of what a generated SDK looks like.
+Here is an example of what a generated sdk looks like.
 
 ![](https://i.imgur.com/gQhmv34.png)
 ![](https://i.imgur.com/b3N6MvO.png)
