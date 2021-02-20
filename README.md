@@ -40,8 +40,6 @@ To get started in generating an sdk, copy  and paste the `Rocket League` folder 
 
 ### Finalization
 
-There is a [video tutorial](https://www.youtube.com/watch?v=e2igcsT-Yc8) for this project, but as of version 2.0.6 it is slightly outdated so keep that in mind.
-
 Once your sdk has been generated you might need to make a minor change to it. Depending on the game the header files in `SdkHeaders.h` could be placed out of order, if they are make sure to swap it out in the order of `Core` first, then `Engine`; here is an example:
 
 ```cpp
