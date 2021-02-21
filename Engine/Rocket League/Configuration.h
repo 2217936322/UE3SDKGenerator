@@ -6,11 +6,10 @@
 namespace Configuration
 {
 	extern bool UsingConstants;
-	extern bool UsingOffset;
+	extern bool UsingOffsets;
 	extern bool UsingDetours;
 	extern bool UsingEnumClasses;
 
-	extern int LogSpacer;
 	extern int CommentSpacer;
 	extern int ConstSpacer;
 	extern int EnumSpacer;
@@ -23,7 +22,7 @@ namespace Configuration
 	extern std::string ProcessEventString;
 	extern const unsigned char* ProcessEventPattern;
 	extern const char* ProcessEventMask;
-	//extern uintptr_t ProcessEventOffset;
+	extern uintptr_t ProcessEventOffset;
 
 	extern std::string GObjectsString;
 	extern const unsigned char* GObjectsPattern;

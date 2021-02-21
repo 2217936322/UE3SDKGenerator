@@ -2,12 +2,11 @@
 
 namespace Configuration
 {
-    bool UsingConstants = true; // If you want to use constant variables for everything, instead of FindClass (very efficient, but need to generate new sdk everytime the game updates)
-    bool UsingOffset = false; // If you are using offsets or FindPattern to find GObjects & GNames
+    bool UsingConstants = false; // If you want to use constant variables for everything, instead of FindClass (very efficient, but need to generate new sdk everytime the game updates)
+    bool UsingOffsets = false; // If you are using offsets or FindPattern to find GObjects & GNames
     bool UsingDetours = true; // If you're goning to be detouring/using the VfTable for process event change this to true, if you're using virtual voids change this to false
     bool UsingEnumClasses = true; // If you want to use enum classes over just normal enums
 
-    int LogSpacer = 15;
     int CommentSpacer = 30;
     int ConstSpacer = 50;
     int EnumSpacer = 50;
@@ -20,7 +19,7 @@ namespace Configuration
     std::string ProcessEventString = "null";
     const unsigned char* ProcessEventPattern = (const unsigned char*)"null";
     const char* ProcessEventMask = (const char*)"null";
-    //uintptr_t ProcessEventOffset = (uintptr_t)0x0;
+    uintptr_t ProcessEventOffset = (uintptr_t)0x0;
 
     std::string GObjectsString = "null";
     const unsigned char* GObjectsPattern = (const unsigned char*)"null";
@@ -34,8 +33,8 @@ namespace Configuration
 
     std::string GameName = "Rocket League";
     std::string GameNameShort = "RLSDK";
-    std::string GameVersion = "210125.70886.309642";
-    std::string GeneratorVersion = "v2.0.7";
+    std::string GameVersion = "210209.63888.312452";
+    std::string GeneratorVersion = "v2.0.8";
     std::string GeneratorCredits = "TheFeckless, ItsBranK";
     std::string GeneratorLinks = "www.github.com/ItsBranK/UE3SDKGenerator, www.twitter.com/ItsBranK";
     std::string GeneratorDirectory = "UE3SDKGenerator";

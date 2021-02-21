@@ -5,11 +5,12 @@
 #include <stdint.h>
 #include <direct.h>
 #include <iostream>
-#include <stdio.h>
+#include <fstream>
 #include <sstream>
-#include <iomanip>
+#include <stdio.h>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "Engine/Rocket League/GameDefines.h"
 #include "Engine/Rocket League/ObjectFunctions.h"

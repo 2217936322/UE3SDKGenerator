@@ -13,19 +13,14 @@ TArray<class UObject*>* UObject::GObjObjects()
 	return objectArray;
 }
 
-char const* UObject::GetName()
+std::string UObject::GetName()
 {
-	static char charBuffer[512];
-	memset(charBuffer, 0, sizeof charBuffer);
-	std::string name = this->Name.ToString();
-	sprintf_s(charBuffer, "%s", name.c_str());
-
-	return charBuffer;
+	return this->Name.ToString();
 }
 
-char const* UObject::GetNameCPP()
+std::string UObject::GetNameCPP()
 {
-	static char charBuffer[512];
+	std::string nameCPP;
 
 	if (this->IsA(UClass::StaticClass()))
 	{
@@ -37,12 +32,12 @@ char const* UObject::GetNameCPP()
 
 			if (className == "Actor")
 			{
-				strcpy_s(charBuffer, "A");
+				nameCPP += "A";
 				break;
 			}
 			else if (className == "Object")
 			{
-				strcpy_s(charBuffer, "U");
+				nameCPP += "U";
 				break;
 			}
 
@@ -51,58 +46,42 @@ char const* UObject::GetNameCPP()
 	}
 	else
 	{
-		strcpy_s(charBuffer, "F");
+		nameCPP += "F";
 	}
 
-	strcat_s(charBuffer, this->GetName());
+	nameCPP += this->GetName();
 
-	return charBuffer;
+	return nameCPP;
 }
 
-char const* UObject::GetFullName()
+std::string UObject::GetFullName()
 {
 	if (this->Class && this->Outer)
 	{
-		static char charBuffer[1024];
-		char tempBuffer[1024];
-		strcpy_s(charBuffer, this->GetName());
+		std::string fullName = this->GetName();
 
 		for (UObject* uOuter = this->Outer; uOuter; uOuter = uOuter->Outer)
 		{
-			strcpy_s(tempBuffer, uOuter->GetName());
-			strcat_s(tempBuffer, ".");
-
-			size_t len1 = strlen(tempBuffer);
-			size_t len2 = strlen(charBuffer);
-
-			memmove(charBuffer + len1, charBuffer, len1 + len2 + 1);
-			memcpy(charBuffer, tempBuffer, len1);
+			fullName = uOuter->GetName() + "." + fullName;
 		}
 
-		strcpy_s(tempBuffer, this->Class->GetName());
-		strcat_s(tempBuffer, " ");
+		fullName = this->Class->GetName() + " " + fullName;
 
-		size_t len1 = strlen(tempBuffer);
-		size_t len2 = strlen(charBuffer);
-
-		memmove(charBuffer + len1, charBuffer, len1 + len2 + 1);
-		memcpy(charBuffer, tempBuffer, len1);
-
-		return charBuffer;
+		return fullName;
 	}
 
 	return "null";
 }
 
-char const* UObject::GetPackageName()
+std::string UObject::GetPackageName()
 {
 	UObject* uPackageObj = this->GetPackageObj();
 
 	if (uPackageObj)
 	{
-		static char charBuffer[512];
-		strcpy_s(charBuffer, uPackageObj->GetName());
-		return charBuffer;
+		static std::string packageName = uPackageObj->GetName();
+
+		return packageName;
 	}
 	
 	return "null";
@@ -120,7 +99,8 @@ UObject* UObject::GetPackageObj()
 	return uPackage;
 }
 
-template<typename T> T* UObject::FindObject(char const* objectFullName)
+template<typename T>
+T* UObject::FindObject(const std::string& objectFullName)
 {
 	for (UObject* uObject : *UObject::GObjObjects())
 	{
@@ -136,7 +116,8 @@ template<typename T> T* UObject::FindObject(char const* objectFullName)
 	return nullptr;
 }
 
-template<typename T> static unsigned int UObject::CountObject(char const* objectName)
+template<typename T>
+static uint32_t UObject::CountObject(const std::string& objectName)
 {
 	static std::map<std::string, int> countCache;
 
@@ -150,7 +131,7 @@ template<typename T> static unsigned int UObject::CountObject(char const* object
 			{
 				if (uObject->GetName() == objectName)
 				{
-					countCache[std::string(uObject->GetName())]++;
+					countCache[uObject->GetName()]++;
 				}
 			}
 		}
@@ -159,7 +140,7 @@ template<typename T> static unsigned int UObject::CountObject(char const* object
 	return countCache[objectName];
 }
 
-UClass* UObject::FindClass(char const* classFullName)
+UClass* UObject::FindClass(const std::string& classFullName)
 {
 	static bool initialized = false;
 	static std::map<std::string, UClass*> foundClasses{};
@@ -215,7 +196,7 @@ bool UObject::IsA(int objInternalInteger)
 	return false;
 }
 
-UFunction* UFunction::FindFunction(char const* functionFullName)
+UFunction* UFunction::FindFunction(const std::string& functionFullName)
 {
 	static bool initialized = false;
 	static std::map<std::string, UFunction*> foundFunctions{};

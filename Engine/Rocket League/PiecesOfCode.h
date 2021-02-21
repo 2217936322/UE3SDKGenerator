@@ -33,7 +33,7 @@ std::string TArray_Iterator =
 "\t\treturn *this;\n"
 "\t}\n"
 "\n"
-"\tTIterator operator++(int)\n"
+"\tTIterator operator++(int32_t)\n"
 "\t{\n"
 "\t\tTIterator iteratorCopy = *this;\n"
 "\t\t++(*this);\n"
@@ -46,7 +46,7 @@ std::string TArray_Iterator =
 "\t\treturn *this;\n"
 "\t}\n"
 "\n"
-"\tTIterator operator--(int)\n"
+"\tTIterator operator--(int32_t)\n"
 "\t{\n"
 "\t\tTIterator iteratorCopy = *this;\n"
 "\t\t--(*this);\n"
@@ -236,7 +236,7 @@ std::string TArray_Struct =
 std::string FNameEntry_Struct =
 "struct FNameEntry\n"
 "{\n"
-"\tunsigned char\tUnknownData00[0x18];\n"
+"\tuint8_t\t\t\tUnknownData00[0x18];\n"
 "\twchar_t\t\t\tName[0x100];\n"
 "};\n";
 
@@ -258,23 +258,26 @@ std::string FName_Struct =
 "\t\tInstanceNumber = 0;\n"
 "\t}\n"
 "\n"
-"\tFName(int i)\n"
+"\tFName(int32_t i)\n"
 "\t{\n"
 "\t\tFNameEntryId = i;\n"
 "\t\tInstanceNumber = 0;\n"
 "\t}\n"
 "\n"
-"\tFName(ElementPointer findName)\n"
+"\tFName(ElementPointer nameToFind)\n"
 "\t{\n"
-"\t\tstatic TArray<int> nameCache;\n"
+"\t\tstatic std::vector<int32_t> nameCache{};\n"
 "\n"
-"\t\tfor (int entry : nameCache)\n"
+"\t\tFNameEntryId = 0;\n"
+"\t\tInstanceNumber = 0;\n"
+"\n"
+"\t\tfor (int32_t name : nameCache)\n"
 "\t\t{\n"
-"\t\t\tif (Names()->At(entry))\n"
+"\t\t\tif (Names()->At(name))\n"
 "\t\t\t{\n"
-"\t\t\t\tif (!wcscmp(Names()->At(nameCache[entry])->Name, findName))\n"
+"\t\t\t\tif (!wcscmp(Names()->At(nameCache[name])->Name, nameToFind))\n"
 "\t\t\t\t{\n"
-"\t\t\t\t\tFNameEntryId = nameCache[entry];\n"
+"\t\t\t\t\tFNameEntryId = nameCache[name];\n"
 "\t\t\t\t\treturn;\n"
 "\t\t\t\t}\n"
 "\t\t\t}\n"
@@ -284,9 +287,9 @@ std::string FName_Struct =
 "\t\t{\n"
 "\t\t\tif (Names()->At(i))\n"
 "\t\t\t{\n"
-"\t\t\t\tif (!wcscmp(Names()->At(i)->Name, findName))\n"
+"\t\t\t\tif (!wcscmp(Names()->At(i)->Name, nameToFind))\n"
 "\t\t\t\t{\n"
-"\t\t\t\t\tnameCache.Add(i);\n"
+"\t\t\t\t\tnameCache.push_back(i);\n"
 "\t\t\t\t\tFNameEntryId = i;\n"
 "\t\t\t\t}\n"
 "\t\t\t}\n"
@@ -307,7 +310,7 @@ std::string FName_Struct =
 "\t\treturn FNameEntryId;\n"
 "\t}\n"
 "\n"
-"\tconst FNameEntry GetDisplayNameEntry() const\n"
+"\tconst struct FNameEntry GetDisplayNameEntry() const\n"
 "\t{\n"
 "\t\tif (IsValid())\n"
 "\t\t{\n"
@@ -315,7 +318,7 @@ std::string FName_Struct =
 "\t\t}\n"
 "\t}\n"
 "\n"
-"\tFNameEntry* GetEntry()\n"
+"\tstruct FNameEntry* GetEntry()\n"
 "\t{\n"
 "\t\tif (IsValid())\n"
 "\t\t{\n"
@@ -362,11 +365,11 @@ std::string FName_Struct =
 "\t\treturn *this;\n"
 "\t}\n"
 "\n"
-"\tbool operator==(const FName& name) const\n"
+"\tbool operator==(const FName& other) const\n"
 "\t{\n"
-"\t\treturn (FNameEntryId == name.FNameEntryId);\n"
+"\t\treturn (FNameEntryId == other.FNameEntryId);\n"
 "\t}\n"
-"};\n\n";
+"};\n";
 
 std::string FScriptDelegate_Struct =
 "struct FScriptDelegate\n"
@@ -433,7 +436,7 @@ std::string FString_Struct =
 "\t\t\treturn str;\n"
 "\t\t}\n"
 "\n"
-"\t\treturn \"null\";\n"
+"\t\treturn std::string(\"null\");\n"
 "\t}\n"
 "\n"
 "\tbool IsValid() const\n"
@@ -462,42 +465,81 @@ std::string FString_Struct =
 "\t}\n"
 "};\n";
 
-std::string UClass_Fields =
-"\tclass UField*\tNext;\t// 0x0060 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData00[0x8];\t// 0x0068 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+std::string UField_Fields =
+"\tclass UField*\t\tNext;\t\t\t\t\t\t\t\t\t// 0x0060 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData00[0x8];\t\t\t\t\t\t// 0x0068 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UEnum_Fields =
+"\tTArray<FName>\t\tNames;\t\t\t\t\t\t\t\t\t// 0x0070 (0x0C) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UConst_Fields =
+"\tstruct FString\t\tValue;\t\t\t\t\t\t\t\t\t// 0x0070 (0x10) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UProperty_Fields =
+"\tunsigned long\t\tArrayDim;\t\t\t\t\t\t\t\t// 0x0070 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\t\tElementSize;\t\t\t\t\t\t\t// 0x0074 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tint64_t\t\t\t\tPropertyFlags;\t\t\t\t\t\t\t// 0x0078 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData[0x10];\t\t\t\t\t\t// 0x0080 (0x10) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\t\tPropertySize;\t\t\t\t\t\t\t// 0x0090 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData00[0x4];\t\t\t\t\t\t// 0x0094 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\t\tOffset;\t\t\t\t\t\t\t\t\t// 0x0098 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData01[0x2C];\t\t\t\t\t// 0x009C (0x30) NOT AUTO-GENERATED PROPERTY\n";
 
 std::string UStruct_Fields =
-"\tunsigned char\tUnknownData00[0x10];\t// 0x0070 (0x10) NOT AUTO-GENERATED PROPERTY\n"
-"\tclass UField*\tSuperField;\t// 0x0080 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tclass UField*\tChildren;\t// 0x0088 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned long\tPropertySize;\t// 0x0090 (0x08) NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData01[0x98];\t// 0x0094 (0x9C) NOT AUTO-GENERATED PROPERTY\n";
+"\tuint8_t\t\t\t\tUnknownData00[0x10];\t\t\t\t\t// 0x0070 (0x10) NOT AUTO-GENERATED PROPERTY\n"
+"\tclass UField*\t\tSuperField;\t\t\t\t\t\t\t\t// 0x0080 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tclass UField*\t\tChildren;\t\t\t\t\t\t\t\t// 0x0088 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\t\tPropertySize;\t\t\t\t\t\t\t// 0x0090 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData01[0x9C];\t\t\t\t\t// 0x0094 (0x9C) NOT AUTO-GENERATED PROPERTY\n";
 
 std::string UFunction_Fields =
-"\tunsigned long\tFunctionFlags;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tiNative;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tRepOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tstruct FName\tFriendlyName;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tNumParms;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned short\tParmsSize;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned long\tReturnValueOffset;\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tunsigned char\tUnknownData00[0x8];\t// NOT AUTO-GENERATED PROPERTY\n"
-"\tvoid*\t\t\tFunc;\t// NOT AUTO-GENERATED PROPERTY \n";
+"\tint64_t\t\t\t\tFunctionFlags;\t\t\t\t\t\t\t// 0x0130 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint16_t\t\t\tiNative;\t\t\t\t\t\t\t\t// 0x0138 (0x02) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint16_t\t\t\tRepOffset;\t\t\t\t\t\t\t\t// 0x013A (0x02) NOT AUTO-GENERATED PROPERTY\n"
+"\tstruct FName\t\tFriendlyName;\t\t\t\t\t\t\t// 0x013C (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tOperatorPrecedence;\t\t\t\t\t\t// 0x0144 (0x01) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tNumParms;\t\t\t\t\t\t\t\t// 0x0145 (0x01) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint16_t\t\t\tParmsSize;\t\t\t\t\t\t\t\t// 0x0146 (0x02) NOT AUTO-GENERATED PROPERTY\n"
+"\tunsigned long\t\tReturnValueOffset;\t\t\t\t\t\t// 0x0148 (0x04) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData00[0xC];\t\t\t\t\t\t// 0x014C (0x12) NOT AUTO-GENERATED PROPERTY\n"
+"\tFPointer\t\t\tFunc;\t\t\t\t\t\t\t\t\t// 0x0158 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UStructProperty_Fields =
+"\tclass UStruct*\t\tStruct;\t\t\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UObjectProperty_Fields =
+"\tclass UClass*\t\tPropertyClass;\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tuint8_t\t\t\t\tUnknownData00[0x08];\t\t\t\t\t// 0x00D0 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UMapProperty_Fields =
+"\tclass UProperty*\tKey;\t\t\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n"
+"\tclass UProperty*\tValue;\t\t\t\t\t\t\t\t\t// 0x00D0 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UInterfaceProperty_Fields =
+"\tclass UClass*\t\tInterfaceClass;\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UByteProperty_Fields =
+"\tclass UEnum*\t\tEnum;\t\t\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UBoolProperty_Fields =
+"\tuint64_t\t\t\tBitMask;\t\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n";
+
+std::string UArrayProperty_Fields =
+"\tclass UProperty*\tInner;\t\t\t\t\t\t\t\t\t// 0x00C8 (0x08) NOT AUTO-GENERATED PROPERTY\n";
 
 std::string UObject_FunctionDescriptions =
-"\tstatic TArray<class UObject*>* GObjObjects();\n\n"
-
-"\tchar const* GetName();\n"
-"\tchar const* GetNameCPP();\n"
-"\tchar const* GetFullName();\n"
-"\t//char const* GetPackageName();\n"
-"\tUObject* GetPackageObj();\n\n"
-
-"\ttemplate<typename T> static T* FindObject(char const* objectFullName);\n"
-"\ttemplate<typename T> static unsigned int CountObject(char const* objectName);\n"
-"\tstatic UClass* FindClass(char const* classFullName);\n\n"
-
-"\tbool IsA(UClass* pClass);\n"
+"\tstatic TArray<class UObject*>* GObjObjects();\n"
+"\n"
+"\tstd::string GetName();\n"
+"\tstd::string GetNameCPP();\n"
+"\tstd::string GetFullName();\n"
+"\tUObject* GetPackageObj();\n"
+"\n"
+"\ttemplate<typename T> static T* FindObject(const std::string& objectFullName);\n"
+"\ttemplate<typename T> static uint32_t CountObject(const std::string& objectName);\n"
+"\tstatic UClass* FindClass(const std::string& classFullName);\n"
+"\n"
+"\tbool IsA(class UClass* uClass);\n"
 "\tbool IsA(int objInternalInteger);\n\n";
 
 std::string UObject_Functions =
@@ -507,19 +549,14 @@ std::string UObject_Functions =
 "\treturn objectArray;\n"
 "}\n"
 "\n"
-"char const* UObject::GetName()\n"
+"std::string UObject::GetName()\n"
 "{\n"
-"\tstatic char charBuffer[512];\n"
-"\tmemset(charBuffer, 0, sizeof charBuffer);\n"
-"\tstd::string name = this->Name.ToString();\n"
-"\tsprintf_s(charBuffer, \"%s\", name.c_str());\n"
-"\n"
-"\treturn charBuffer;\n"
+"\treturn this->Name.ToString();\n"
 "}\n"
 "\n"
-"char const* UObject::GetNameCPP()\n"
+"std::string UObject::GetNameCPP()\n"
 "{\n"
-"\tstatic char charBuffer[512];\n"
+"\tstd::string nameCPP;\n"
 "\n"
 "\tif (this->IsA(UClass::StaticClass()))\n"
 "\t{\n"
@@ -531,12 +568,12 @@ std::string UObject_Functions =
 "\n"
 "\t\t\tif (className == \"Actor\")\n"
 "\t\t\t{\n"
-"\t\t\t\tstrcpy_s(charBuffer, \"A\");\n"
+"\t\t\t\tnameCPP += \"A\";\n"
 "\t\t\t\tbreak;\n"
 "\t\t\t}\n"
 "\t\t\telse if (className == \"Object\")\n"
 "\t\t\t{\n"
-"\t\t\t\tstrcpy_s(charBuffer, \"U\");\n"
+"\t\t\t\tnameCPP += \"U\";\n"
 "\t\t\t\tbreak;\n"
 "\t\t\t}\n"
 "\n"
@@ -545,44 +582,28 @@ std::string UObject_Functions =
 "\t}\n"
 "\telse\n"
 "\t{\n"
-"\t\tstrcpy_s(charBuffer, \"F\");\n"
+"\t\tnameCPP += \"F\";\n"
 "\t}\n"
 "\n"
-"\tstrcat_s(charBuffer, this->GetName());\n"
+"\tnameCPP += this->GetName();\n"
 "\n"
-"\treturn charBuffer;\n"
+"\treturn nameCPP;\n"
 "}\n"
 "\n"
-"char const* UObject::GetFullName()\n"
+"std::string UObject::GetFullName()\n"
 "{\n"
 "\tif (this->Class && this->Outer)\n"
 "\t{\n"
-"\t\tstatic char charBuffer[1024];\n"
-"\t\tchar tempBuffer[1024];\n"
-"\t\tstrcpy_s(charBuffer, this->GetName());\n"
+"\t\tstd::string fullName = this->GetName();\n"
 "\n"
 "\t\tfor (UObject* uOuter = this->Outer; uOuter; uOuter = uOuter->Outer)\n"
 "\t\t{\n"
-"\t\t\tstrcpy_s(tempBuffer, uOuter->GetName());\n"
-"\t\t\tstrcat_s(tempBuffer, \".\");\n"
-"\n"
-"\t\t\tsize_t len1 = strlen(tempBuffer);\n"
-"\t\t\tsize_t len2 = strlen(charBuffer);\n"
-"\n"
-"\t\t\tmemmove(charBuffer + len1, charBuffer, len1 + len2 + 1);\n"
-"\t\t\tmemcpy(charBuffer, tempBuffer, len1);\n"
+"\t\t\tfullName = uOuter->GetName() + \".\" + fullName;\n"
 "\t\t}\n"
 "\n"
-"\t\tstrcpy_s(tempBuffer, this->Class->GetName());\n"
-"\t\tstrcat_s(tempBuffer, \" \");\n"
+"\t\tfullName = this->Class->GetName() + \" \" + fullName;\n"
 "\n"
-"\t\tsize_t len1 = strlen(tempBuffer);\n"
-"\t\tsize_t len2 = strlen(charBuffer);\n"
-"\n"
-"\t\tmemmove(charBuffer + len1, charBuffer, len1 + len2 + 1);\n"
-"\t\tmemcpy(charBuffer, tempBuffer, len1);\n"
-"\n"
-"\t\treturn charBuffer;\n"
+"\t\treturn fullName;\n"
 "\t}\n"
 "\n"
 "\treturn \"null\";\n"
@@ -600,7 +621,8 @@ std::string UObject_Functions =
 "\treturn uPackage;\n"
 "}\n"
 "\n"
-"template<typename T> T* UObject::FindObject(char const* objectFullName)\n"
+"template<typename T>\n"
+"T* UObject::FindObject(const std::string& objectFullName)\n"
 "{\n"
 "\tfor (UObject* uObject : *UObject::GObjObjects())\n"
 "\t{\n"
@@ -616,7 +638,8 @@ std::string UObject_Functions =
 "\treturn nullptr;\n"
 "}\n"
 "\n"
-"template<typename T> static unsigned int UObject::CountObject(char const* objectName)\n"
+"template<typename T>\n"
+"static uint32_t UObject::CountObject(const std::string& objectName)\n"
 "{\n"
 "\tstatic std::map<std::string, int> countCache;\n"
 "\n"
@@ -630,7 +653,7 @@ std::string UObject_Functions =
 "\t\t\t{\n"
 "\t\t\t\tif (uObject->GetName() == objectName)\n"
 "\t\t\t\t{\n"
-"\t\t\t\t\tcountCache[std::string(uObject->GetName())]++;\n"
+"\t\t\t\t\tcountCache[uObject->GetName()]++;\n"
 "\t\t\t\t}\n"
 "\t\t\t}\n"
 "\t\t}\n"
@@ -639,7 +662,7 @@ std::string UObject_Functions =
 "\treturn countCache[objectName];\n"
 "}\n"
 "\n"
-"UClass* UObject::FindClass(char const* classFullName)\n"
+"UClass* UObject::FindClass(const std::string& classFullName)\n"
 "{\n"
 "\tstatic bool initialized = false;\n"
 "\tstatic std::map<std::string, UClass*> foundClasses{};\n"
@@ -696,7 +719,7 @@ std::string UObject_Functions =
 "}\n\n";
 
 std::string UFunction_Functions =
-"UFunction* UFunction::FindFunction(char const* functionFullName)\n"
+"UFunction* UFunction::FindFunction(const std::string& functionFullName)\n"
 "{\n"
 "\tstatic bool initialized = false;\n"
 "\tstatic std::map<std::string, UFunction*> foundFunctions{};\n"
