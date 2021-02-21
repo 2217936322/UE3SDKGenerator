@@ -38,11 +38,7 @@ Customize the spacing for comments, constants, structs, enums, functions, classe
 
 To get started in generating an sdk, copy  and paste the `Rocket League` folder included in the Engine folder and rename it to the game you would like to use. The `GameDefines.h` file will need to be reversed by hand for each game that you want to use. Once you have the necessary classes filled out all that's left to do is make the desired changes in the `Configuration.cpp` file and make sure you have the right `Engine` files included for your game in `dllmain.h`. When you inject compiled dll into your game you will be prompted with a message saying that sdk generation has started, do not close your game until you recieve another message confirming generation is completed.
 
-By default there is one Engine file, Rocket League, included. To create your own just copy the folder and paste it in the Engine folder and modify the #includes in `dllmain.h` as needed. The `GameDefines.h` file is game specific and will need to be changed acordingly. After that you can make your own changes to `Configuration.cpp` and after that you're ready to generate an sdk! Just compile as
-
 ### Finalization
-
-There is a [video tutorial](https://www.youtube.com/watch?v=e2igcsT-Yc8) for this project, but as of version 2.0.6 it is slightly outdated so keep that in mind.
 
 Once your sdk has been generated you might need to make a minor change to it. Depending on the game the header files in `SdkHeaders.h` could be placed out of order, if they are make sure to swap it out in the order of `Core` first, then `Engine`; here is an example:
 
